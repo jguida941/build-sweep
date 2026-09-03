@@ -1,15 +1,37 @@
 # BuildSweep
 
-BuildSweep is a local macOS utility being built with Swift and SwiftUI to find and remove regenerable development artifacts.
+BuildSweep is a local macOS utility being built with Swift and SwiftUI to find and remove
+regenerable development artifacts.
 
-Its scanner is designed around deterministic, project-aware rules for identifying Rust `target` directories, Swift `.build` directories, Xcode DerivedData, and other generated build output. It will not classify directories by name alone. This avoids manual filesystem searches and model-token usage for a deterministic local task.
+Build outputs and tool caches accumulate across repositories and can consume substantial disk space.
+BuildSweep's planned scanner uses deterministic, project-aware rules so a developer can reclaim
+that space without repeated filesystem searches or model-token usage for a deterministic local
+task. A familiar directory name by itself is never enough to authorize cleanup.
 
-Before cleanup, BuildSweep will show each artifact’s toolchain, path, size, and classification evidence. The developer selects the exact items to move to Trash. Source code, project settings, and unverified directories remain outside the cleanup boundary.
+The planned product shows each candidate's toolchain, location, size, and classification evidence.
+The developer chooses the exact candidates to move to Trash, where they remain recoverable until the
+Trash is emptied.
 
-The planned interface is a lightweight macOS menu bar utility that can reclaim development space without requiring directory searches or CLI commands.
+Initial coverage is planned for Rust, Swift and Xcode, C and C++, Python, Gradle and Android, and
+selected IDE-generated caches. Source code, workspace settings, editor rules, and user-authored IDE
+configuration stay outside the cleanup boundary.
+
+The planned interface is a lightweight native macOS menu bar utility for reclaiming development
+space without directory searches or CLI cleanup commands.
 
 ## Status
 
-BuildSweep is in early development and is being built one feature at a time while I learn Swift, SwiftUI, and native macOS development.
+BuildSweep is in early development. The current app is an Xcode-generated SwiftUI prototype; the
+scanner and cleanup workflow described above are not implemented yet. I am building it one feature
+at a time while learning Swift, SwiftUI, and native macOS development.
 
-> **Development note:** Being developed agentically with Semloop and SemVariants. Testing and validation run locally, while private evidence and supporting artifacts remain local.
+## Documentation
+
+- [Product requirements](docs/PRODUCT.md)
+- [Safety model](docs/SAFETY.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Architectural decisions](docs/decisions/README.md)
+
+> **Development note:** BuildSweep is being developed collaboratively with agent assistance using
+> SemLoop and SemVariants. Product tests live with the code; raw development evidence and supporting
+> process artifacts remain private.
