@@ -8,17 +8,18 @@ nonisolated struct LocalFileSystemEvidenceReader: FileSystemEvidenceReading {
         }
 
         var metadata = stat()
-        let outcome = url.withUnsafeFileSystemRepresentation { representation in
+        let lstatResult = url.withUnsafeFileSystemRepresentation { representation in
             guard let representation else {
-                return (status: Int32(-1), error: Int32(EINVAL))
+                return (status: Int32(-1), errorNumber: Int32(EINVAL))
             }
 
+            // Use lstat so a symbolic link at the final path component is reported, not followed.
             let status = Darwin.lstat(representation, &metadata)
-            return (status: status, error: status == 0 ? 0 : errno)
+            return (status: status, errorNumber: status == 0 ? 0 : errno)
         }
 
-        guard outcome.status == 0 else {
-            return .failure(readError(for: outcome.error))
+        guard lstatResult.status == 0 else {
+            return .failure(readError(for: lstatResult.errorNumber))
         }
 
         switch metadata.st_mode & mode_t(S_IFMT) {
@@ -41,22 +42,24 @@ nonisolated struct LocalFileSystemEvidenceReader: FileSystemEvidenceReading {
             return .failure(.unreadable)
         }
 
-        let outcome = url.withUnsafeFileSystemRepresentation { representation in
+        let openResult = url.withUnsafeFileSystemRepresentation { representation in
             guard let representation else {
-                return (descriptor: Int32(-1), error: Int32(EINVAL))
+                return (descriptor: Int32(-1), errorNumber: Int32(EINVAL))
             }
 
+            // Refuse a symbolic link at the final path component.
             let descriptor = Darwin.open(representation, O_RDONLY | O_CLOEXEC | O_NOFOLLOW)
-            return (descriptor: descriptor, error: descriptor >= 0 ? 0 : errno)
+            return (descriptor: descriptor, errorNumber: descriptor >= 0 ? 0 : errno)
         }
 
-        guard outcome.descriptor >= 0 else {
-            return .failure(readError(for: outcome.error))
+        guard openResult.descriptor >= 0 else {
+            return .failure(readError(for: openResult.errorNumber))
         }
-        defer { Darwin.close(outcome.descriptor) }
+        defer { Darwin.close(openResult.descriptor) }
 
         var metadata = stat()
-        guard Darwin.fstat(outcome.descriptor, &metadata) == 0,
+        // Check the opened descriptor so replacing the path cannot bypass the regular-file rule.
+        guard Darwin.fstat(openResult.descriptor, &metadata) == 0,
               metadata.st_mode & mode_t(S_IFMT) == mode_t(S_IFREG) else {
             return .failure(.unreadable)
         }
@@ -66,7 +69,7 @@ nonisolated struct LocalFileSystemEvidenceReader: FileSystemEvidenceReading {
         }
 
         var bytes = [UInt8](repeating: 0, count: maximumByteCount)
-        let bytesRead = Darwin.read(outcome.descriptor, &bytes, maximumByteCount)
+        let bytesRead = Darwin.read(openResult.descriptor, &bytes, maximumByteCount)
         guard bytesRead >= 0 else {
             return .failure(.unreadable)
         }
@@ -74,8 +77,8 @@ nonisolated struct LocalFileSystemEvidenceReader: FileSystemEvidenceReading {
         return .success(Data(bytes.prefix(Int(bytesRead))))
     }
 
-    private func readError(for error: Int32) -> FileSystemEvidenceReadError {
-        switch error {
+    private func readError(for errorNumber: Int32) -> FileSystemEvidenceReadError {
+        switch errorNumber {
         case ENOENT, ENOTDIR:
             return .missing
         default:

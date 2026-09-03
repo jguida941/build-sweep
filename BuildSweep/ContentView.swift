@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  BuildSweep
-//
-//  Created by Jguida941 on 9/3/26.
-//
-
 import SwiftUI
 
 struct ContentView: View {

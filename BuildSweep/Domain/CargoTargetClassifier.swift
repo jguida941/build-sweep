@@ -1,28 +1,26 @@
 import Foundation
 
-/// The observations that justify recognizing a directory as Cargo build output.
+/// Evidence supporting a read-only Cargo target classification.
 ///
-/// Keeping these observations in the result lets the interface explain a classification. Evidence
-/// supports a read-only finding; it does not grant permission to remove the directory.
+/// This evidence explains the finding but does not authorize removal.
 nonisolated enum CargoTargetEvidence: Equatable, Sendable {
     case cargoManifestAtWorkspaceRoot
     case defaultTargetDirectoryAtWorkspaceRoot
     case canonicalCacheDirectoryTag
 }
 
-/// A read-only classifier finding, deliberately smaller than a cleanup candidate.
+/// A read-only finding that is deliberately smaller than a cleanup candidate.
 ///
-/// Stable filesystem identity, size, scan identity, and authorized-root relationship belong to the
-/// later candidate-building stage, where they can be captured from one scan snapshot.
+/// Candidate-building captures stable identity, size, scan identity, and the authorized-root
+/// relationship from one scan snapshot.
 nonisolated struct CargoTargetClassification: Equatable, Sendable {
     let directoryURL: URL
     let evidence: [CargoTargetEvidence]
 }
 
-/// Identifies the exact required observation that prevented classification.
+/// Identifies the required observation that prevented classification.
 ///
-/// A typed refusal keeps missing, unreadable, linked, malformed, and wrong-kind evidence from being
-/// collapsed into either an unexplained omission or a false safe result.
+/// Typed reasons keep unsafe states distinct and fail closed.
 nonisolated struct CargoTargetRefusal: Equatable, Sendable {
     enum Evidence: Equatable, Sendable {
         case workspaceRoot
@@ -50,14 +48,13 @@ nonisolated enum CargoTargetClassificationResult: Equatable, Sendable {
     case refused(CargoTargetRefusal)
 }
 
-/// Recognizes only Cargo's default `<workspace>/target` layout.
+/// Recognizes Cargo's default `<workspace>/target` layout.
 ///
-/// The supplied workspace root is already authorized by a higher layer. This classifier neither
-/// discovers roots nor authorizes cleanup; it only decides whether the expected Cargo relationship
-/// is supported by current filesystem evidence.
+/// The caller supplies an already-authorized workspace root. This classifier neither discovers
+/// roots nor authorizes cleanup.
 nonisolated struct CargoTargetClassifier: Sendable {
-    // Cargo places this standard prefix in cache directories. Requiring it prevents a directory
-    // named `target` from being treated as generated output based on its name alone.
+    // Cargo writes this standard prefix to its target cache tag. A matching directory name alone
+    // is not enough evidence.
     private static let canonicalCacheTagSignature = Data(
         "Signature: 8a477f597d28d172789f06886806bc55".utf8
     )
@@ -158,8 +155,7 @@ nonisolated struct CargoTargetClassifier: Sendable {
             return refusal
         }
 
-        // Only the identifying prefix is relevant to classification; arbitrary cache-tag contents
-        // do not need to be loaded into memory.
+        // Read only the identifying prefix; remaining cache-tag bytes do not affect classification.
         switch fileSystem.readPrefix(
             at: cacheTagURL,
             maximumByteCount: Self.canonicalCacheTagSignature.count
