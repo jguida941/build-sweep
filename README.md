@@ -1,13 +1,15 @@
 # BuildSweep
 
-BuildSweep is a small macOS utility built with Swift and SwiftUI for reclaiming disk space used by regenerable development files.
+BuildSweep is a local macOS utility being built with Swift and SwiftUI to find and remove regenerable development artifacts.
 
-Working across multiple repositories, coding sessions, and AI-assisted projects can quickly leave behind Rust `target` directories, Swift `.build` directories, Xcode DerivedData, debug output, and other generated build artifacts. When you regularly move between projects, inactive build files alone can consume tens of gigabytes.
+Its scanner is designed around deterministic, project-aware rules for identifying Rust `target` directories, Swift `.build` directories, Xcode DerivedData, and other generated build output. It will not classify directories by name alone. This avoids manual filesystem searches and model-token usage for a deterministic local task.
 
-BuildSweep’s purpose is simple: identify recognized build artifacts, show how much space each one uses, and let the developer choose which items to move to Trash. Selected items are moved to Trash rather than permanently deleted, and BuildSweep is designed to target files that their original build tools can regenerate when needed.
+Before cleanup, BuildSweep will show each artifact’s toolchain, path, size, and classification evidence. The developer selects the exact items to move to Trash. Source code, project settings, and unverified directories remain outside the cleanup boundary.
 
-The goal is to make reclaiming development space quick and understandable without forcing developers to make rushed decisions about unfamiliar project files.
+The planned interface is a lightweight macOS menu bar utility that can reclaim development space without requiring directory searches or CLI commands.
 
-The planned interface is a lightweight native macOS menu bar utility, making it easy to inspect and reclaim development space without interrupting your workflow.
+## Status
 
-BuildSweep is currently in early development. I am building it one feature at a time as a practical way to improve my understanding of Swift, SwiftUI, and native macOS development.
+BuildSweep is in early development and is being built one feature at a time while I learn Swift, SwiftUI, and native macOS development.
+
+> **Development note:** Being developed agentically with Semloop and SemVariants. Testing and validation run locally, while private evidence and supporting artifacts remain local.
