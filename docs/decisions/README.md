@@ -14,7 +14,7 @@ short historical records, not another copy of the current product, safety, or ar
 
 Write an ADR when a choice changes a durable component boundary, filesystem authority, safety or
 privacy posture, persistence model, platform/framework dependency, or release shape. Do not write
-one for routine Swift implementation details that a focused diff and product test explain better.
+one for routine Swift implementation details that a focused change explains better.
 
 Each ADR contains context, decision, alternatives, consequences, and links to the canonical docs it
 changes. Use `Proposed`, `Accepted`, `Superseded`, or `Rejected` as status. When a decision changes,

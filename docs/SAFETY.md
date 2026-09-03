@@ -73,7 +73,7 @@ Unless a future safety review changes this document explicitly, BuildSweep exclu
 - any unsupported, contradictory, stale, or incomplete classification.
 
 An exclusion wins over a positive-looking signal. A new exception requires a documented decision,
-a narrower classifier, and product tests for the dangerous near misses.
+a narrower classifier, and evidence that the dangerous near misses are refused.
 
 ## Selection and confirmation
 
@@ -94,13 +94,11 @@ does not claim permanent erasure because Trash is recoverable.
 BuildSweep must continue to present refused and failed outcomes after a mixed operation. Retrying
 requires a fresh validity check and cannot expand the original selection.
 
-## Verification expectations
+## Release boundary
 
-Every safety law that reaches implementation needs an ordinary product test for its stable public
-behavior. High-risk laws also need adversarial cases for similarly named source directories,
+A safety law is not supported merely because implementation exists. Release evidence must also show
+the intended behavior and dangerous near misses, including similarly named source directories,
 blanket refusal, stale identities, link traversal, selection substitution, partial failure, and a
-Trash service that reports success without producing the expected filesystem effect.
-
-Tests and implementation are necessary but not sufficient for a release claim. Supported macOS
-behavior, accessibility, and the visible confirmation/receipt experience must also be observed in
-the environments named by the release stage.
+Trash service that reports success without producing the expected filesystem effect. Supported
+macOS behavior, accessibility, and the visible confirmation and receipt experience must be observed
+in the environments named by the release stage.

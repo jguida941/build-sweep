@@ -31,7 +31,3 @@ at a time while learning Swift, SwiftUI, and native macOS development.
 - [Safety model](docs/SAFETY.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Architectural decisions](docs/decisions/README.md)
-
-> **Development note:** BuildSweep is being developed collaboratively with agent assistance using
-> SemLoop and SemVariants. Product tests live with the code; raw development evidence and supporting
-> process artifacts remain private.

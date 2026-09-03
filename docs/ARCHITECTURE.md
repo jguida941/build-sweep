@@ -105,9 +105,9 @@ The product must represent at least these distinct states as the corresponding s
 Exact visual composition belongs to the UI contract and user review. Collapsing these semantic
 states into the same success-looking presentation is an architecture defect.
 
-## Test boundaries
+## Observable boundaries
 
-Ordinary product tests are committed with the code. The architecture provides narrow seams for:
+The architecture provides narrow seams where each important behavior can be observed:
 
 - classifier examples, near misses, properties, and path-shape transformations;
 - authorized-root containment and link traversal;
@@ -118,17 +118,16 @@ Ordinary product tests are committed with the code. The architecture provides na
 - per-item receipts and partial failures;
 - presentation-state reduction and accessibility identifiers for meaningful controls.
 
-Tests use fakes only at declared adapter boundaries. A classifier test observes the classifier's
-typed result; a cleanup test must also observe the protected filesystem effect through a channel
-independent of the Trash adapter's return value. UI tests do not become the only protection for a
-domain safety law.
+A classifier exposes its typed result. Cleanup exposes both the Trash request and the filesystem
+outcome through a channel independent of the Trash adapter's return value. Presentation is not the
+only observable protection for a domain safety law.
 
 ## Requirement and safety traceability
 
 This table maps current public laws to the boundaries expected to enforce them. It is a design map,
 not evidence that enforcement exists.
 
-| Law | Primary boundary | Required product-test route |
+| Law | Primary boundary | Required observable behavior |
 | --- | --- | --- |
 | PRD-001 | ARC-001, ARC-003, ARC-008 | Core workflows succeed with local adapters and no network dependency |
 | PRD-002 | ARC-001, ARC-002, ARC-003 | Inventory never observes outside the supplied authorized roots |
@@ -155,7 +154,8 @@ not evidence that enforcement exists.
 
 A change that moves responsibility across these boundaries, introduces a new irreversible effect,
 changes candidate identity, broadens filesystem authority, or makes a new framework/platform choice
-requires an architectural decision record. Small implementation choices stay in code and tests.
+requires an architectural decision record. Small implementation choices stay with the focused
+implementation change.
 
 Decision records explain why a choice was made and link back here. This document remains the source
 of truth for the current architecture; an accepted decision does not duplicate or replace it.

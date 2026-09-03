@@ -22,12 +22,12 @@ Five principles decide product tradeoffs:
 This document and the linked safety and architecture documents describe BuildSweep's current
 intended behavior. They guide implementation, but their presence is not evidence that a capability
 works. Each development slice should connect one requirement and its safety laws to the smallest
-real user-observable behavior and its ordinary product tests.
+real user-observable behavior.
 
 When a real product observation contradicts an assumption here, update the owning document and, for
 a consequential decision, add or supersede an architectural decision record. Do not preserve stale
 documentation to make an implementation appear conformant, and do not silently change product
-meaning only in code or tests.
+meaning only in implementation.
 
 ## Product outcome
 
@@ -68,7 +68,7 @@ The [safety model](SAFETY.md) governs what may become a candidate or reach Trash
 ## Planned artifact coverage
 
 Coverage is admitted incrementally. An item in this table is planned, not implemented, until its
-classifier and product tests land.
+classifier is present and its required evidence and refusal behavior have been demonstrated.
 
 | Family | Planned artifacts | Minimum evidence direction |
 | --- | --- | --- |
@@ -80,13 +80,13 @@ classifier and product tests land.
 | Gradle and Android | Supported generated build output | A related Gradle/Android project plus generated-output evidence |
 | IDEs | Selected regenerable caches and indexes | A supported IDE-owned cache location or marker with explicit exclusions |
 
-Adding a family requires an update to this table, the safety model, implementation, and focused
-product tests. Similar-looking source or configuration directories are never admitted by analogy.
+Adding a family requires an update to this table, the safety model, its implementation, and evidence
+that dangerous near misses are refused. Similar-looking source or configuration directories are
+never admitted by analogy.
 
 ## Release stages
 
-1. **Foundation:** native app shell, public requirements, safety boundaries, test target, and core
-   domain types.
+1. **Foundation:** native app shell, public requirements, safety boundaries, and core domain types.
 2. **Read-only scan:** authorized-root selection and evidence-backed discovery for the first Rust,
    SwiftPM, and Xcode classifiers. No cleanup is enabled in this stage.
 3. **Reviewed cleanup:** exact selection, pre-operation revalidation, Trash-only movement, and
@@ -96,7 +96,7 @@ product tests. Similar-looking source or configuration directories are never adm
    cancellation checks, packaging, and a user-accepted native experience.
 
 Each stage must be usable and honestly labeled. Planned coverage must not appear as supported in the
-app or public release notes before it is implemented and tested.
+app or public release notes before its behavior has been implemented and observed.
 
 ## Non-goals
 
@@ -116,14 +116,15 @@ Use these terms without collapsing one into another:
 
 - **planned:** the capability appears in product or architecture documents;
 - **implemented:** production code exists in the current checkout;
-- **test-exercised:** named product tests executed against that checkout;
+- **behavior-observed:** the capability's required outcomes were observed on a named build and
+  environment;
 - **user-accepted:** the declared user task and visual question were accepted on a named build and
   macOS environment;
 - **release-accepted:** every requirement in the capability's declared release stage has the
-  required implementation, test, safety, accessibility, and user evidence.
+  required implementation, safety, accessibility, behavior, and user evidence.
 
 A capability is complete only when its public requirement and safety laws are implemented, its
-ordinary product tests pass, its relevant UI states are observable, and remaining limits are stated.
+required behavior and UI states are observable, and remaining limits are stated.
 The current prototype does not yet meet those conditions for any cleanup capability.
 
 ## Product success signals
