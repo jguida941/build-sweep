@@ -21,9 +21,15 @@ space without directory searches or CLI cleanup commands.
 
 ## Status
 
-BuildSweep is in early development. The current app is an Xcode-generated SwiftUI prototype; the
-scanner and cleanup workflow described above are not implemented yet. I am building it one feature
-at a time while learning Swift, SwiftUI, and native macOS development.
+BuildSweep is in early development. Its first read-only slice can inspect one Cargo project chosen
+through the native macOS folder picker. It recognizes the project's default `target` directory only
+when the Cargo manifest, default location, and canonical cache tag are present, then shows the path,
+an allocated-size estimate, and the evidence behind the result.
+
+BuildSweep does not yet search across multiple projects or remove anything. Broader artifact
+coverage, reviewed selection, revalidation, Trash movement, and receipts remain planned. The
+current app targets macOS 13 and later; release validation on supported macOS versions is still
+required.
 
 ## Documentation
 

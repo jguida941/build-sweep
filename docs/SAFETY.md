@@ -1,6 +1,7 @@
 # Safety model
 
-Status: normative design requirements. The current prototype does not yet enforce these laws.
+Status: normative design requirements. The current read-only Cargo inspector enforces a narrow
+classification subset; cleanup laws remain design requirements until their boundaries exist.
 
 BuildSweep treats cleanup as a safety-sensitive local operation. “Regenerable” is a classification
 that must be supported by current evidence; it is never inferred from a familiar folder name or
@@ -53,8 +54,19 @@ A classifier owns one artifact family and declares:
 Evidence must be observed from the current filesystem snapshot. Cached classification, a previous
 scan, a suffix match, or the cleanup service's own success response is not a substitute.
 
-The first supported classifiers will define their exact evidence in focused implementation changes.
-Until then, the artifact families in [the product plan](PRODUCT.md#planned-artifact-coverage) remain
+The current Cargo inspector supports only the default layout beneath one folder the developer
+selects. It requires that the selected root be a real directory, `Cargo.toml` be a real regular file,
+`target` be a real directory at that root, and `target/CACHEDIR.TAG` be a real regular file whose
+prefix matches Cargo's canonical cache-tag signature. A missing, unreadable, wrong-type, linked, or
+invalid observation produces a typed refusal. The resulting read-only finding is not cleanup
+authority.
+
+This narrow rule follows Cargo's documented [default target-directory
+layout](https://doc.rust-lang.org/cargo/reference/build-cache.html) and the signature check in
+Cargo's own [`cargo clean`
+validator](https://doc.rust-lang.org/nightly/nightly-rustc/src/cargo/ops/cargo_clean.rs.html#156-185).
+
+Every other artifact family in [the product plan](PRODUCT.md#planned-artifact-coverage) remains
 planned rather than supported.
 
 ## Always-excluded material

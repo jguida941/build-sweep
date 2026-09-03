@@ -1,7 +1,7 @@
 # Architecture
 
-Status: target architecture for the early BuildSweep releases. The current SwiftUI prototype does
-not yet implement these components.
+Status: target architecture for the early BuildSweep releases. The first read-only Cargo slice
+implements a narrow path through this architecture; cleanup components remain unimplemented.
 
 ## Architectural outcome
 
@@ -27,6 +27,17 @@ independently observed per-item receipts
 
 Each arrow is a boundary that can refuse input. No downstream component may reconstruct authority
 from a path string after an upstream component refused or omitted it.
+
+## Current implementation boundary
+
+The current app accepts one workspace chosen with the native macOS folder picker, applies the Cargo
+classifier to its default `target`, estimates allocated storage without following symbolic links or
+crossing a mounted filesystem, and projects the typed finding or refusal into a native window. This
+is an inspection finding, not the immutable cleanup candidate described by ARC-005.
+
+Recursive discovery, multi-project snapshots, stable cleanup identity, selection, revalidation,
+Trash, and receipts are not implemented. The menu-bar entry and inspector window share one
+application model; filesystem work runs away from the main actor.
 
 ## Components and responsibilities
 
