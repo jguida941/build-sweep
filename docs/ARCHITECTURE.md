@@ -35,9 +35,28 @@ classifier to its default `target`, estimates allocated storage without followin
 crossing a mounted filesystem, and projects the typed finding or refusal into a native window. This
 is an inspection finding, not the immutable cleanup candidate described by ARC-005.
 
-Recursive discovery, multi-project snapshots, stable cleanup identity, selection, revalidation,
-Trash, and receipts are not implemented. The menu-bar entry and inspector window share one
-application model; filesystem work runs away from the main actor.
+A recursive directory inventory and Cargo scan coordinator are implemented separately from the
+app. Scan results retain unreadable Cargo evidence as issues while keeping supported findings.
+Traversal containment and other incomplete-observation cases still need validation before app
+integration. The app continues to inspect only the selected workspace and does not yet present
+results from recursive discovery.
+
+Multi-project snapshots, stable cleanup identity, selection, revalidation, Trash, and receipts
+remain unimplemented. The menu-bar entry and inspector window share one application model;
+filesystem work runs away from the main actor.
+
+## Discovery boundary
+
+Recursive discovery keeps inventory and classification separate. The filesystem inventory walks
+real directories beneath one authorized root and reports typed cancellation, access, and
+incomplete-observation outcomes. It never calls a path supported merely because it finds a familiar
+name or manifest.
+
+The scan coordinator passes possible workspace roots to the relevant classifier and collects only
+its evidence-backed results. It may prune traversal at an explicit scope boundary or beneath an
+artifact already classified for that scan, but pruning does not create product authority. This
+keeps discovery reusable as more toolchains are added without moving safety policy into the
+filesystem walker.
 
 ## Components and responsibilities
 

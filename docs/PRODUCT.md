@@ -84,6 +84,16 @@ Adding a family requires an update to this table, the safety model, its implemen
 that dangerous near misses are refused. Similar-looking source or configuration directories are
 never admitted by analogy.
 
+## Read-only discovery boundary
+
+During the read-only scan stage, the developer chooses one folder as the visible scan root.
+BuildSweep may discover supported artifacts nested beneath that root, while keeping empty, partial,
+cancelled, denied, and failed scans distinct. It does not scan the entire Mac by default, preserve
+broad access without a separate decision, or describe an artifact as unused from timestamps alone.
+
+Discovery produces inspection results only. It does not select an artifact, authorize cleanup, or
+weaken the revalidation required by a later cleanup stage.
+
 ## Release stages
 
 1. **Foundation:** native app shell, public requirements, safety boundaries, and core domain types.

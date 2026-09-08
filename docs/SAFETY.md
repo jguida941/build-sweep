@@ -69,6 +69,18 @@ validator](https://doc.rust-lang.org/nightly/nightly-rustc/src/cargo/ops/cargo_c
 Every other artifact family in [the product plan](PRODUCT.md#planned-artifact-coverage) remains
 planned rather than supported.
 
+## Discovery safety
+
+A discovered directory name or manifest is only a reason to ask a classifier; it is not enough to
+produce a supported result. The classifier must observe its complete evidence predicate for the
+exact artifact before the scan can present it.
+
+Inventory does not follow symbolic links or aliases and does not cross a mounted-filesystem
+boundary beneath the authorized root. Those paths are outside the declared scan scope. A directory
+that is inside that scope but cannot be inspected makes the scan partial instead of silently
+becoming an empty or successful result. A familiar generated-directory name may be pruned only as a
+traversal decision; it never becomes classification or cleanup authority.
+
 ## Always-excluded material
 
 Unless a future safety review changes this document explicitly, BuildSweep excludes:
