@@ -49,11 +49,12 @@ The [safety model](SAFETY.md) governs what may become a candidate or reach Trash
 
 - **PRD-001 — Local operation:** Scanning, classification, selection, and cleanup run locally on the
   Mac. Core cleanup behavior does not require a cloud service or AI model.
-- **PRD-002 — Authorized scope:** The developer can see and control the roots BuildSweep will scan.
+- **PRD-002 — Authorized scope:** The developer can approve, remember, disable, and remove scan
+  locations. Inspection remains within the currently approved roots.
 - **PRD-003 — Supported classification:** BuildSweep presents only artifacts for which a supported
   classifier has sufficient project or toolchain evidence.
 - **PRD-004 — Explainable results:** Every candidate shows its artifact type, path, size, and the
-  evidence used to classify it.
+  evidence used to classify it, including known regeneration requirements and limits.
 - **PRD-005 — Explicit selection:** No candidate is removed until the developer selects that exact
   item and confirms the operation.
 - **PRD-006 — Recoverable cleanup:** Accepted items are moved to the macOS Trash and receive a
@@ -73,12 +74,14 @@ classifier is present and its required evidence and refusal behavior have been d
 | Family | Planned artifacts | Minimum evidence direction |
 | --- | --- | --- |
 | Rust | Cargo `target` output | A related Cargo project plus build-output evidence |
-| Swift | SwiftPM `.build` output | A related Swift package plus SwiftPM build metadata |
-| Xcode | DerivedData for a project or workspace | Xcode-derived metadata that binds output to its source project |
-| C and C++ | Verified CMake build trees | CMake-generated metadata, not a directory name alone |
+| Swift | Generated output within SwiftPM `.build` | Swift package and build metadata; preserve source-bearing checkouts and unknown contents |
+| Xcode | Generated build output within project or workspace DerivedData | Xcode-derived metadata binding output to its project; preserve archives, source packages, and unrelated state |
 | Python | Bytecode and supported test, type-checker, and linter caches | Tool-specific cache structure within an authorized project |
-| Gradle and Android | Supported generated build output | A related Gradle/Android project plus generated-output evidence |
+| Java and Android | Supported Gradle and Maven build output | Related build definitions and generated-output evidence |
+| C and C++ | Verified CMake build trees | CMake-generated metadata, not a directory name alone |
+| JavaScript and other tools | Selected generated output and tool caches | A separately supported tool-owned layout with source and dependency exclusions |
 | IDEs | Selected regenerable caches and indexes | A supported IDE-owned cache location or marker with explicit exclusions |
+| Python environments | Informational environment inventory first | Environment metadata; cleanup remains unavailable until a separate recreation rule is supported |
 
 Adding a family requires an update to this table, the safety model, its implementation, and evidence
 that dangerous near misses are refused. Similar-looking source or configuration directories are
@@ -86,27 +89,81 @@ never admitted by analogy.
 
 ## Read-only discovery boundary
 
-During the read-only scan stage, the developer chooses one folder as the visible scan root.
-BuildSweep may discover supported artifacts nested beneath that root, while keeping empty, partial,
-cancelled, denied, and failed scans distinct. It does not scan the entire Mac by default, preserve
-broad access without a separate decision, or describe an artifact as unused from timestamps alone.
+The planned scan accepts several locations approved through the native macOS chooser and remembers
+those grants for later scans. The developer can review, disable, remove, and reauthorize locations.
+Suggested project and developer-cache locations confer no access until explicitly approved. There
+is no default whole-Mac scan and no automatic expansion into paths mentioned by project metadata.
+
+Scans start on demand and remain cancellable. Results arrive incrementally, preserve denied and
+unreadable locations, and distinguish exhausted resource limits from a complete empty scan.
+Overlapping roots and artifact directories must not duplicate findings or inflate their totals.
+Scope completeness and each item's size completeness remain separate observations. Timestamps
+alone never establish that an artifact is unused.
 
 Discovery produces inspection results only. It does not select an artifact, authorize cleanup, or
-weaken the revalidation required by a later cleanup stage.
+weaken later revalidation. Informational environments and unsupported near misses remain distinct
+from supported cleanup candidates. The current app still inspects one selected Cargo project;
+remembered locations and this broader presentation remain planned.
 
-## Release stages
+## Native interfaces
 
-1. **Foundation:** native app shell, public requirements, safety boundaries, and core domain types.
-2. **Read-only scan:** authorized-root selection and evidence-backed discovery for the first Rust,
-   SwiftPM, and Xcode classifiers. No cleanup is enabled in this stage.
-3. **Reviewed cleanup:** exact selection, pre-operation revalidation, Trash-only movement, and
-   per-item receipts.
-4. **Coverage expansion:** additional language and IDE families, each admitted independently.
-5. **Release readiness:** complete supported-state handling, accessibility review, performance and
-   cancellation checks, packaging, and a user-accepted native experience.
+Four entry points share the same application commands and results:
 
-Each stage must be usable and honestly labeled. Planned coverage must not appear as supported in the
-app or public release notes before its behavior has been implemented and observed.
+| Surface | Purpose | Planned actions |
+| --- | --- | --- |
+| Menu bar | Compact status and frequent actions | Scan Saved Locations, Cancel Scan, Review Results, Manage Locations, Settings, Quit |
+| Dock | Quick access when the window is not frontmost | Scan Saved Locations, Cancel Scan, Review Results |
+| Widget | Glanceable summary and focused actions | Scan Now and Review; medium WidgetKit family first |
+| Main window | Comparison, explanations, permissions, and cleanup review | Locations sidebar, size-sorted results, details, search/filter, keep/exclude, Reveal in Finder, exact selection and confirmation |
+
+The menu bar shows the latest estimate, its observation time, and scan status in a native compact
+panel. The widget shows the same qualified summary, with clear stale, partial, and unavailable
+states. Its gallery preview must describe actual supported functionality. A widget action may open
+the app to start a scan or resolve permission; the widget does not perform filesystem work itself.
+
+Starting the same scan from another surface reveals the current attempt instead of restarting it.
+Changing or revoking scan authority invalidates affected work. Closing the window leaves an accepted
+scan running; explicitly quitting cancels read-only work. A cancelled new attempt does not make an
+older displayed result appear freshly measured. Cleanup confirmation remains in the main window.
+
+Native controls, keyboard navigation, VoiceOver, contrast, and readable long paths are required on
+each implemented surface. The app retains macOS 13 support; newer widget capabilities use explicit
+availability paths. See [the shared-command decision](decisions/0004-shared-native-commands.md).
+
+## Storage and regeneration information
+
+Show estimated artifact size, bytes observed moved to Trash, and current available disk capacity as
+different quantities. Allocated-size estimates do not promise unique physical space reclaimed,
+particularly with shared storage. A Trash move alone must never increase a freed-space counter.
+Provide Open Trash for the developer's final Finder action; BuildSweep does not empty the Trash.
+
+Explain known rebuild or download requirements without executing project scripts. A requirements
+file or lockfile alone does not prove that an environment can be recreated: interpreter
+availability, resolved dependencies, editable/local packages, and user-added contents matter.
+Virtual environments remain informational until an independently supported rule addresses these
+conditions. Scanning them is not permission to remove them.
+
+## Delivery milestones
+
+1. **Bounded discovery:** finish containment and incomplete-observation behavior, then incremental
+   traversal, pruning, and overlap handling while preserving existing Cargo recognition.
+2. **Remembered locations and results:** approved saved locations, one shared scan snapshot,
+   incremental results, per-location issues, and a native comparison window.
+3. **Useful menu and Dock commands:** connect quick actions to that same workflow and preserve
+   startup, cancellation, and window activation behavior.
+4. **Apple coverage:** add SwiftPM and Xcode separately, admitting only supported generated subtrees.
+5. **Reviewed cleanup:** exact selection, deliberate write access, identity revalidation, native
+   Trash movement, and independently observed per-item receipts; enable each family separately.
+6. **Widget:** package the medium widget with qualified summaries, Scan and Review actions, gallery
+   appearance, cold-launch routing, and accessibility.
+7. **Coverage expansion:** Python caches and Java build output, followed by C/C++, JavaScript, IDE,
+   and other tool caches. Conditional environment cleanup is a separate capability.
+8. **Release readiness:** verify supported macOS behavior, accessibility, responsiveness,
+   cancellation, packaging, and the user-facing review and receipt experience.
+
+The first useful cleanup release prioritizes Apple toolchains and the existing Rust family. Each
+milestone remains planned until implemented and observed; partial delivery must be labeled honestly.
+The current prototype has no cleanup capability.
 
 ## Non-goals
 
@@ -114,7 +171,7 @@ BuildSweep is not:
 
 - a general-purpose disk cleaner;
 - a permanent-deletion or secure-erasure tool;
-- a source-code, dependency, workspace-setting, or editor-configuration cleaner;
+- a source-code, arbitrary dependency, workspace-setting, or editor-configuration cleaner;
 - a replacement for a build tool's own clean command;
 - an automatic background deletion service;
 - a runtime AI classifier for deciding whether a path is safe;
@@ -145,14 +202,12 @@ failures, task completion with keyboard and VoiceOver, and whether developers ca
 item was proposed. Targets belong to the release stage that can measure them; this document does not
 invent numbers before a representative corpus and baseline exist.
 
-## Decisions before implementation expands
+## Decisions before cleanup expands
 
-The first vertical slice should settle, in order:
-
-1. the menu bar presentation and when a larger window is necessary;
-2. the authorized-root selection and macOS access model;
-3. the first classifier and its minimum evidence predicate;
-4. the stable filesystem identity available across scan and cleanup;
-5. receipt lifetime and the amount of path information safe to retain.
+The native entry points and remembered-location direction are accepted design choices, not evidence
+of implementation. Before cleanup is enabled, establish filesystem identity through the actual
+effect boundary, deliberate write authorization, and receipt retention and privacy. Family-specific
+recreation predicates are admitted separately; an unsupported tool never inherits another family's
+cleanup authority.
 
 Consequential choices receive a short record in [architectural decisions](decisions/README.md).

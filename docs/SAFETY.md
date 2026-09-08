@@ -81,6 +81,19 @@ that is inside that scope but cannot be inspected makes the scan partial instead
 becoming an empty or successful result. A familiar generated-directory name may be pruned only as a
 traversal decision; it never becomes classification or cleanup authority.
 
+### Saved access and incomplete observations
+
+Remembered access is limited to grants obtained through the native chooser. Disabling or removing a
+location prevents new observation under that grant and invalidates its contribution to current
+results and selection. Metadata pointing outside approved roots does not authorize following it.
+Read access never silently becomes cleanup write access.
+
+An explicit exclusion or out-of-scope mount is different from an unreadable directory within scope.
+Resource exhaustion is a partial observation. Scan-scope completeness and artifact-size
+completeness must survive every summary independently; a complete inventory can contain an artifact
+whose size could not be fully measured. Deduplicate overlapping observations without implying that
+allocated estimates equal unique physical storage.
+
 ## Always-excluded material
 
 Unless a future safety review changes this document explicitly, BuildSweep excludes:
@@ -93,11 +106,24 @@ Unless a future safety review changes this document explicitly, BuildSweep exclu
 - `.idea`, `.vscode`, Xcode user data, editor rules, run configurations, and other user-authored IDE
   settings;
 - signing material, credentials, environment files, and secrets;
+- dependency source checkouts, Xcode archives, SDKs, and simulator or device user data;
 - symbolic links, aliases, mount boundaries, and unresolved filesystem identities;
 - any unsupported, contradictory, stale, or incomplete classification.
 
 An exclusion wins over a positive-looking signal. A new exception requires a documented decision,
 a narrower classifier, and evidence that the dangerous near misses are refused.
+
+## Additional artifact families
+
+SwiftPM and Xcode cleanup must identify supported generated subtrees. A recognizable parent such as
+`.build` or DerivedData can contain source-bearing or unrelated material, so its name never
+authorizes removing the whole container. Unknown or protected contents prevent that directory from
+becoming a cleanup candidate.
+
+Python environments are informational until a separate supported recreation rule exists. Manifest
+or lockfile presence alone is insufficient. Preserve local/editable packages and user-authored
+material; do not execute project scripts to determine safety. Each later family needs its own
+positive evidence, exclusions, and current regeneration limits.
 
 ## Selection and confirmation
 
@@ -106,14 +132,22 @@ exact selected items and their total size using the same identities that will be
 effect boundary. Default selection must not make an unreviewed item easy to remove accidentally.
 
 If a result changes after scanning, BuildSweep refuses that item instead of quietly substituting a
-path with the same text. A fresh scan creates a fresh candidate identity.
+path with the same text. A fresh scan creates a fresh candidate identity. Row focus, filtering,
+sorting, and a widget or Dock action cannot create or widen cleanup selection. Nothing is selected
+by default. Confirmation takes place in the main window using the exact selected identities.
 
 ## Trash boundary and outcomes
 
 The Trash service receives only revalidated candidate identities, never an arbitrary path assembled
 from UI text. It returns a typed outcome per item. A receipt records what BuildSweep actually
-observed; it does not claim that space was reclaimed until the move is independently visible, and it
-does not claim permanent erasure because Trash is recoverable.
+observed, including the identity at the resulting Trash location. A successful service response
+alone does not establish the move. Post-operation checks supplement pre-effect protection; detecting
+a wrong-object move afterwards does not satisfy the requirement to prevent it.
+
+An observed move is not evidence that disk space was freed. Items remain in Trash until emptied, so
+estimated artifact bytes, bytes moved to Trash, and current available capacity remain separate.
+BuildSweep offers Open Trash for the developer's Finder action and never empties the Trash itself.
+See [Apple's description of Trash](https://support.apple.com/guide/mac-help/delete-files-and-folders-on-mac-mchlp1093/mac).
 
 BuildSweep must continue to present refused and failed outcomes after a mixed operation. Retrying
 requires a fresh validity check and cannot expand the original selection.

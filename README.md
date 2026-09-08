@@ -12,12 +12,14 @@ The planned product shows each candidate's toolchain, location, size, and classi
 The developer chooses the exact candidates to move to Trash, where they remain recoverable until the
 Trash is emptied.
 
-Initial coverage is planned for Rust, Swift and Xcode, C and C++, Python, Gradle and Android, and
-selected IDE-generated caches. Source code, workspace settings, editor rules, and user-authored IDE
+The first useful cleanup release prioritizes Rust, Swift, and Xcode. Python caches, Java and
+Android build output, C and C++, JavaScript, and selected IDE caches follow. Virtual environments
+are planned for informational inventory before any separately supported cleanup rule. Source code, workspace settings, editor rules, and user-authored IDE
 configuration stay outside the cleanup boundary.
 
-The planned interface is a lightweight native macOS menu bar utility for reclaiming development
-space without directory searches or CLI cleanup commands.
+The planned native interfaces share one workflow: a menu bar control panel, Dock quick actions,
+a review window, and a desktop/Notification Center widget with Scan and Review actions. Approved
+locations are remembered so repeated scans do not require selecting every project again.
 
 ## Status
 

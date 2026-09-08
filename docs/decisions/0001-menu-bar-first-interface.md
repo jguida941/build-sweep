@@ -41,3 +41,6 @@ current platform guidance establish it.
 Current requirements: [PRODUCT.md](../PRODUCT.md)
 
 Current boundaries: [ARCHITECTURE.md](../ARCHITECTURE.md)
+
+Extended by [ADR-0004](0004-shared-native-commands.md) with shared commands across the menu, Dock,
+window, and widget. The original menu-bar entry remains available.

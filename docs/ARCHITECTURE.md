@@ -43,7 +43,9 @@ results from recursive discovery.
 
 Multi-project snapshots, stable cleanup identity, selection, revalidation, Trash, and receipts
 remain unimplemented. The menu-bar entry and inspector window share one application model;
-filesystem work runs away from the main actor.
+filesystem work runs away from the main actor. Saved grants, incremental inventory, shared
+multi-location state, useful Dock/menu commands, Apple classifiers, and a WidgetKit extension remain
+planned. A documented component boundary is not an implemented service.
 
 ## Discovery boundary
 
@@ -58,10 +60,21 @@ artifact already classified for that scan, but pruning does not create product a
 keeps discovery reusable as more toolchains are added without moving safety policy into the
 filesystem walker.
 
+### Incremental traversal
+
+Inventory must provide observations as directories are visited, with explicit descend/prune
+decisions and cancellation and resource-limit outcomes. Classification can then prevent unnecessary
+descent beneath supported artifacts without moving recognition policy into the walker. The current
+array-returning inventory buffers the entire walk and does not yet provide this behavior.
+
+The coordinator deduplicates approved roots and artifact identities while preserving the grant that
+justifies each finding. It resolves ancestor/descendant overlap before producing selectable items.
+Boundary exclusions, in-scope read failures, and incomplete size measurements remain separate data.
+
 ## Components and responsibilities
 
-- **ARC-001 — App shell:** Owns the native menu bar scene, commands, window or popover presentation,
-  and dependency composition. It contains no classification or deletion rules.
+- **ARC-001 — App shell:** Owns startup composition, native window, menu, Dock and widget command
+  routing, and location authorization adapters. It contains no classification or deletion rules.
 - **ARC-002 — Scan coordinator:** Starts and cancels bounded scans, reports progress, and joins
   classifier output into a stable scan snapshot. It does not decide that an artifact is safe.
 - **ARC-003 — Filesystem inventory:** Observes entries and metadata inside authorized roots without
@@ -101,12 +114,51 @@ Concrete filesystem, Trash, clock, identity, and receipt adapters are injected a
 Domain and application layers must not import a view or read UI labels to make a safety decision.
 Views must not pass arbitrary paths directly to the Trash adapter.
 
+## Shared commands and native presentation
+
+Create one application command owner at startup before a scene or external action can use it. Inject
+it into the window, menu bar, and Dock delegate. Commands request a scan, cancel an attempt, open
+review, manage locations, or open settings; they cannot grant authority or accept arbitrary cleanup
+paths. The coordinator is the sole scan executor. Equivalent requests for the same authority
+revision share the active attempt; a changed authority revision invalidates affected work.
+
+Keep Domain, Application, Infrastructure, and Presentation responsibilities in the existing app
+until a real compilation boundary is needed. A typed classifier interface adds families without
+duplicating Cargo policy. Replace the Cargo-specific presentation model when shared snapshots land;
+do not retain an independent single-project workflow beside it.
+
+The menu uses a native compact panel and the Dock delegates quick actions to the same command owner.
+The main window uses a locations sidebar, sortable results table, and artifact detail view. Row
+focus and cleanup selection are separate. The main window owns permission repair and confirmation.
+
+WidgetKit receives a versioned, atomically replaced summary through an App Group, containing
+observation time, scan identity, qualified estimated size, and validity state. It receives no raw paths, bookmarks, or
+cleanup requests. Scan and Review actions route to fixed app commands; cold launch initializes
+authorization and state before processing them. A request is not displayed as accepted work until
+the app accepts it. Widget timelines are not a promise of live progress.
+
+## Location authorization
+
+One store owns approved location IDs, bookmark data, enablement, and authorization revisions. It
+resolves security-scoped URLs and balances access for the duration of work. UI components do not
+resolve bookmarks. Missing or stale grants lead to typed setup/access states, never fallback access
+to a wider path. Persisted read grants do not substitute for deliberate cleanup write permission.
+
 ## State and identity
 
 A scan creates a unique snapshot identity. Every candidate is bound to that snapshot and to a
 stable filesystem identity observed under one authorized root. Selection stores candidate identity,
 not list position. A refresh replaces the visible snapshot and invalidates selections that cannot be
 proven identical.
+
+The latest attempt and the displayed snapshot are separate values. Starting or cancelling a scan
+does not rewrite the observation time of a retained older snapshot. Late completion is checked
+against both attempt identity and current root authority. Revocation invalidates affected findings
+and selection. Closing the window does not destroy the command owner or its task.
+
+Snapshots preserve per-location outcomes and per-item measurement completeness independently.
+Read-only findings are a distinct type from cleanup candidates. Estimated allocated bytes, observed
+Trash outcomes, and available volume capacity are separate projections, not one savings counter.
 
 The revalidation service is the only transition from reviewed candidate to effect request. It must
 reject a candidate when the item is missing, replaced, relocated outside authority, linked through

@@ -10,6 +10,8 @@ short historical records, not another copy of the current product, safety, or ar
 | [ADR-0001](0001-menu-bar-first-interface.md) | Use a menu-bar-first application shell | Accepted |
 | [ADR-0002](0002-evidence-gated-trash-pipeline.md) | Require an evidence-gated, user-approved Trash pipeline | Accepted |
 | [ADR-0003](0003-support-macos-13-and-later.md) | Support macOS 13 and later | Accepted |
+| [ADR-0004](0004-shared-native-commands.md) | Share commands across native entry points | Accepted |
+| [ADR-0005](0005-remember-approved-locations.md) | Remember explicitly approved scan locations | Accepted |
 
 ## When to write a decision
 
