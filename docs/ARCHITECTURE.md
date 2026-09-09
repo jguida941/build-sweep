@@ -37,8 +37,9 @@ is an inspection finding, not the immutable cleanup candidate described by ARC-0
 
 A recursive directory inventory and Cargo scan coordinator are implemented separately from the
 app. Scan results retain unreadable Cargo evidence as issues while keeping supported findings.
-Traversal containment and other incomplete-observation cases still need validation before app
-integration. The app continues to inspect only the selected workspace and does not yet present
+The inventory preserves real descendants beside ordinary files and excludes static descendant
+symlinks. Alias, mount, changing-path, cancellation, and other incomplete-observation boundaries
+still need validation before app integration. The app continues to inspect only the selected workspace and does not yet present
 results from recursive discovery.
 
 Multi-project snapshots, stable cleanup identity, selection, revalidation, Trash, and receipts

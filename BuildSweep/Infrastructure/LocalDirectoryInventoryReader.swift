@@ -57,8 +57,8 @@ nonisolated struct LocalDirectoryInventoryReader: DirectoryInventoryReading {
                 continue
             }
 
+            // Skipping at a non-directory can prune a later real directory.
             guard fileType(of: itemMetadata) == mode_t(S_IFDIR) else {
-                enumerator.skipDescendants()
                 continue
             }
 
