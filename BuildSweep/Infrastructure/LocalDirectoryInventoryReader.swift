@@ -21,54 +21,63 @@ nonisolated struct LocalDirectoryInventoryReader: DirectoryInventoryReading {
             return .failed(issue: rootIssue)
         }
 
+        var directories: [URL] = []
         var issues: [DirectoryInventoryIssue] = []
-        guard let enumerator = FileManager.default.enumerator(
-            at: rootURL,
-            includingPropertiesForKeys: [],
-            options: [],
-            errorHandler: { url, _ in
-                issues.append(
-                    DirectoryInventoryIssue(
-                        directoryURL: url.standardizedFileURL,
-                        reason: .unreadable
-                    )
-                )
-                return true
-            }
-        ) else {
-            return .failed(issue: rootIssue)
-        }
-
-        // Enumeration omits the selected directory, which may itself be a workspace.
-        var directories = [rootURL]
-        for case let itemURL as URL in enumerator {
+        var pendingDirectories = [rootURL]
+        while let directoryURL = pendingDirectories.popLast() {
             guard !shouldCancel() else {
                 return .cancelled
             }
 
-            guard let itemMetadata = metadata(at: itemURL) else {
-                issues.append(
-                    DirectoryInventoryIssue(
-                        directoryURL: itemURL.standardizedFileURL,
-                        reason: .unreadable
-                    )
+            // A queued directory may have changed since its parent was inspected.
+            guard
+                let directoryMetadata = metadata(at: directoryURL),
+                fileType(of: directoryMetadata) == mode_t(S_IFDIR)
+            else {
+                issues.append(DirectoryInventoryIssue(directoryURL: directoryURL, reason: .unreadable))
+                continue
+            }
+            guard directoryMetadata.st_dev == rootMetadata.st_dev else {
+                continue
+            }
+            directories.append(directoryURL)
+
+            let children: [URL]
+            do {
+                // Shallow lists keep a failed entry from pruning an unrelated branch.
+                children = try FileManager.default.contentsOfDirectory(
+                    at: directoryURL,
+                    includingPropertiesForKeys: [],
+                    options: []
                 )
-                enumerator.skipDescendants()
+            } catch {
+                issues.append(DirectoryInventoryIssue(directoryURL: directoryURL, reason: .unreadable))
                 continue
             }
 
-            // Skipping at a non-directory can prune a later real directory.
-            guard fileType(of: itemMetadata) == mode_t(S_IFDIR) else {
-                continue
-            }
+            for itemURL in children {
+                guard !shouldCancel() else {
+                    return .cancelled
+                }
+                guard let itemMetadata = metadata(at: itemURL) else {
+                    issues.append(
+                        DirectoryInventoryIssue(
+                            directoryURL: itemURL.standardizedFileURL,
+                            reason: .unreadable
+                        )
+                    )
+                    continue
+                }
 
-            // A directory on another device is outside this scan's volume boundary.
-            guard itemMetadata.st_dev == rootMetadata.st_dev else {
-                enumerator.skipDescendants()
-                continue
+                // Only real directories on the authorized volume may enter the worklist.
+                guard
+                    fileType(of: itemMetadata) == mode_t(S_IFDIR),
+                    itemMetadata.st_dev == rootMetadata.st_dev
+                else {
+                    continue
+                }
+                pendingDirectories.append(itemURL.standardizedFileURL)
             }
-
-            directories.append(itemURL.standardizedFileURL)
         }
 
         guard !shouldCancel() else {
