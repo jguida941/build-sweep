@@ -55,8 +55,8 @@ nonisolated struct LocalDirectorySizeMeasurer: DirectorySizeMeasuring {
             }
 
             let itemType = fileType(of: itemMetadata)
+            // Enumeration already excludes links; pruning here can skip a real sibling.
             if itemType == mode_t(S_IFLNK) {
-                enumerator.skipDescendants()
                 continue
             }
             guard itemType == mode_t(S_IFREG) else {

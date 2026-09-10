@@ -33,7 +33,8 @@ from a path string after an upstream component refused or omitted it.
 The current app accepts one workspace chosen with the native macOS folder picker, applies the Cargo
 classifier to its default `target`, estimates allocated storage without following symbolic links or
 crossing a mounted filesystem, and projects the typed finding or refusal into a native window. This
-is an inspection finding, not the immutable cleanup candidate described by ARC-005.
+is an inspection finding, not the immutable cleanup candidate described by ARC-005. Size
+measurement excludes static symbolic links while retaining readable sibling file allocation.
 
 A recursive directory inventory and Cargo scan coordinator are implemented separately from the
 app. Scan results retain unreadable Cargo evidence as issues while keeping supported findings.
