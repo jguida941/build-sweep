@@ -38,15 +38,18 @@ measurement excludes static symbolic links while retaining readable sibling file
 
 A recursive directory inventory and Cargo scan coordinator are implemented separately from the
 app. Scan results retain unreadable Cargo evidence as issues while keeping supported findings.
-The inventory explicitly walks verified directories, retaining readable sibling branches when an
-entry disappears or a child directory cannot be listed. It excludes static descendant symlinks.
+The inventory opens descendant paths one component at a time relative to an open root directory,
+refusing symbolic links at each component. Directory listing and child metadata reads use directory
+descriptors. Readable sibling branches and observable denied directories remain in partial results.
+Returned paths do not carry those open descriptors into classification.
 The reader defaults to a 100,000-child-entry allowance per inventory, counting files and excluded
 entries as well as directories. If another entry would exceed the allowance, it retains observed
 directories and reports an explicit partial result. This bounds child metadata attempts; it does
-not bound each shallow directory-list allocation or subsequent artifact size measurement.
-Alias, mount, changing-path, cancellation, and other incomplete-observation boundaries still need
-validation before app integration. The app continues to inspect only the selected workspace and
-does not yet present results from recursive discovery.
+not bound directory-stream buffering, component-chain reopening, or subsequent artifact size measurement.
+Root acquisition, moved open directories, later path consumers, aliases, mounts, cancellation, and
+other incomplete-observation boundaries still need validation before recursive app integration.
+The app continues to inspect only the selected workspace and does not yet present results from
+recursive discovery.
 
 Multi-project snapshots, stable cleanup identity, selection, revalidation, Trash, and receipts
 remain unimplemented. The menu-bar entry and inspector window share one application model;

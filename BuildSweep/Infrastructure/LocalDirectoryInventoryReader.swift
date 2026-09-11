@@ -4,6 +4,7 @@ import Foundation
 /// Supplies filesystem directories to scanners without owning classification policy.
 nonisolated struct LocalDirectoryInventoryReader: DirectoryInventoryReading {
     private let maximumEntries: Int
+    private let directoryFlags = O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC
 
     init(maximumEntries: Int = 100_000) {
         precondition(maximumEntries >= 0)
@@ -14,113 +15,129 @@ nonisolated struct LocalDirectoryInventoryReader: DirectoryInventoryReading {
         under authorizedRoot: URL,
         shouldCancel: @Sendable () -> Bool
     ) -> DirectoryInventoryResult {
-        guard !shouldCancel() else {
-            return .cancelled
-        }
-
+        guard !shouldCancel() else { return .cancelled }
         let rootURL = authorizedRoot.standardizedFileURL
         let rootIssue = DirectoryInventoryIssue(directoryURL: rootURL, reason: .unreadable)
-        guard
-            rootURL.isFileURL,
-            let rootMetadata = metadata(at: rootURL),
-            fileType(of: rootMetadata) == mode_t(S_IFDIR)
-        else {
+        guard rootURL.isFileURL else { return .failed(issue: rootIssue) }
+        let rootDescriptor = rootURL.withUnsafeFileSystemRepresentation { path in
+            path.map { Darwin.open($0, directoryFlags) } ?? -1
+        }
+        guard rootDescriptor >= 0 else { return .failed(issue: rootIssue) }
+        defer { Darwin.close(rootDescriptor) }
+        guard let rootMetadata = metadata(descriptor: rootDescriptor) else {
             return .failed(issue: rootIssue)
         }
 
         var directories: [URL] = []
         var issues: [DirectoryInventoryIssue] = []
-        var pendingDirectories = [rootURL]
+        var pending = [PendingDirectory(url: rootURL, components: [])]
         var observedEntries = 0
-        while let directoryURL = pendingDirectories.popLast() {
-            guard !shouldCancel() else {
-                return .cancelled
-            }
-
-            // A queued directory may have changed since its parent was inspected.
-            guard
-                let directoryMetadata = metadata(at: directoryURL),
-                fileType(of: directoryMetadata) == mode_t(S_IFDIR)
-            else {
-                issues.append(DirectoryInventoryIssue(directoryURL: directoryURL, reason: .unreadable))
+        while let directory = pending.popLast() {
+            guard !shouldCancel() else { return .cancelled }
+            let descriptor: Int32
+            switch openDirectory(directory.components, under: rootDescriptor, device: rootMetadata.st_dev) {
+            case .opened(let opened): descriptor = opened
+            case .outsideVolume: continue
+            case .unreadable(let observedDirectory):
+                if observedDirectory { directories.append(directory.url) }
+                issues.append(DirectoryInventoryIssue(directoryURL: directory.url, reason: .unreadable))
                 continue
             }
-            guard directoryMetadata.st_dev == rootMetadata.st_dev else {
+            directories.append(directory.url)
+            guard let stream = Darwin.fdopendir(descriptor) else {
+                Darwin.close(descriptor)
+                issues.append(DirectoryInventoryIssue(directoryURL: directory.url, reason: .unreadable))
                 continue
             }
-            directories.append(directoryURL)
-
-            let children: [URL]
-            do {
-                // Shallow lists keep a failed entry from pruning an unrelated branch.
-                children = try FileManager.default.contentsOfDirectory(
-                    at: directoryURL,
-                    includingPropertiesForKeys: [],
-                    options: []
-                )
-            } catch {
-                issues.append(DirectoryInventoryIssue(directoryURL: directoryURL, reason: .unreadable))
-                continue
-            }
-
-            for itemURL in children {
-                guard !shouldCancel() else {
-                    return .cancelled
+            // The stream owns its descriptor, including on cancellation and limit returns.
+            defer { Darwin.closedir(stream) }
+            while true {
+                errno = 0
+                guard let entry = Darwin.readdir(stream) else {
+                    if errno != 0 {
+                        issues.append(DirectoryInventoryIssue(directoryURL: directory.url, reason: .unreadable))
+                    }
+                    break
                 }
-                // Count every child, including files and excluded entries, across the walk.
+                let name = withUnsafePointer(to: &entry.pointee.d_name) { pointer in
+                    pointer.withMemoryRebound(to: CChar.self, capacity: Int(entry.pointee.d_namlen) + 1) {
+                        String(validatingUTF8: $0)
+                    }
+                }
+                if name == "." || name == ".." { continue }
+                guard !shouldCancel() else { return .cancelled }
                 guard observedEntries < maximumEntries else {
-                    issues.append(
-                        DirectoryInventoryIssue(directoryURL: directoryURL, reason: .entryLimitReached)
-                    )
+                    issues.append(DirectoryInventoryIssue(directoryURL: directory.url, reason: .entryLimitReached))
                     return .partial(directories: directories, issues: issues)
                 }
                 observedEntries += 1
-                guard let itemMetadata = metadata(at: itemURL) else {
-                    issues.append(
-                        DirectoryInventoryIssue(
-                            directoryURL: itemURL.standardizedFileURL,
-                            reason: .unreadable
-                        )
-                    )
+                guard let name, !name.isEmpty, !name.contains("/") else {
+                    issues.append(DirectoryInventoryIssue(directoryURL: directory.url, reason: .unreadable))
                     continue
                 }
-
-                // Only real directories on the authorized volume may enter the worklist.
-                guard
-                    fileType(of: itemMetadata) == mode_t(S_IFDIR),
-                    itemMetadata.st_dev == rootMetadata.st_dev
-                else {
+                let itemURL = directory.url.appendingPathComponent(name, isDirectory: true)
+                var itemMetadata = stat()
+                let status = name.withCString {
+                    Darwin.fstatat(descriptor, $0, &itemMetadata, AT_SYMLINK_NOFOLLOW)
+                }
+                guard status == 0 else {
+                    issues.append(DirectoryInventoryIssue(directoryURL: itemURL, reason: .unreadable))
                     continue
                 }
-                pendingDirectories.append(itemURL.standardizedFileURL)
+                guard itemMetadata.st_mode & mode_t(S_IFMT) == mode_t(S_IFDIR),
+                      itemMetadata.st_dev == rootMetadata.st_dev else { continue }
+                pending.append(PendingDirectory(url: itemURL, components: directory.components + [name]))
             }
         }
-
-        guard !shouldCancel() else {
-            return .cancelled
-        }
-        if issues.contains(rootIssue) {
-            return .failed(issue: rootIssue)
-        }
-        if issues.isEmpty {
-            return .complete(directories: directories)
-        }
-        return .partial(directories: directories, issues: issues)
+        guard !shouldCancel() else { return .cancelled }
+        if issues.contains(rootIssue) { return .failed(issue: rootIssue) }
+        return issues.isEmpty ? .complete(directories: directories) : .partial(directories: directories, issues: issues)
     }
 
-    private func metadata(at url: URL) -> stat? {
-        var itemMetadata = stat()
-        let result = url.withUnsafeFileSystemRepresentation { path in
-            guard let path else {
-                return Int32(-1)
+    private struct PendingDirectory {
+        let url: URL
+        let components: [String]
+    }
+
+    private enum DirectoryOpenResult {
+        case opened(Int32)
+        case outsideVolume
+        case unreadable(observedDirectory: Bool)
+    }
+
+    private func openDirectory(_ components: [String], under root: Int32, device: dev_t) -> DirectoryOpenResult {
+        var descriptor = Darwin.openat(root, ".", directoryFlags)
+        guard descriptor >= 0 else { return .unreadable(observedDirectory: false) }
+        for (index, component) in components.enumerated() {
+            // A single relative component cannot traverse an unchecked ancestor link.
+            let child = component.withCString { Darwin.openat(descriptor, $0, directoryFlags) }
+            guard child >= 0 else {
+                // A directory may be observable even when its contents cannot be opened.
+                var observed = stat()
+                let status = component.withCString {
+                    Darwin.fstatat(descriptor, $0, &observed, AT_SYMLINK_NOFOLLOW)
+                }
+                Darwin.close(descriptor)
+                let isDirectory = status == 0 && observed.st_mode & mode_t(S_IFMT) == mode_t(S_IFDIR)
+                if isDirectory && observed.st_dev != device { return .outsideVolume }
+                return .unreadable(observedDirectory: isDirectory && index == components.count - 1)
             }
-            // Inspect the entry itself so a symbolic link is not reported as its target.
-            return Darwin.lstat(path, &itemMetadata)
+            Darwin.close(descriptor)
+            descriptor = child
+            guard let observed = metadata(descriptor: descriptor) else {
+                Darwin.close(descriptor)
+                return .unreadable(observedDirectory: false)
+            }
+            guard observed.st_dev == device else {
+                Darwin.close(descriptor)
+                return .outsideVolume
+            }
         }
-        return result == 0 ? itemMetadata : nil
+        return .opened(descriptor)
     }
 
-    private func fileType(of metadata: stat) -> mode_t {
-        metadata.st_mode & mode_t(S_IFMT)
+    private func metadata(descriptor: Int32) -> stat? {
+        var observed = stat()
+        return Darwin.fstat(descriptor, &observed) == 0 ? observed : nil
     }
 }
