@@ -3,6 +3,7 @@ import Foundation
 nonisolated struct DirectoryInventoryIssue: Equatable, Sendable {
     nonisolated enum Reason: Equatable, Sendable {
         case unreadable
+        case entryLimitReached
     }
 
     let directoryURL: URL

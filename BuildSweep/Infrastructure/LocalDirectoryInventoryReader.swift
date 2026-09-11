@@ -3,6 +3,13 @@ import Foundation
 
 /// Supplies filesystem directories to scanners without owning classification policy.
 nonisolated struct LocalDirectoryInventoryReader: DirectoryInventoryReading {
+    private let maximumEntries: Int
+
+    init(maximumEntries: Int = 100_000) {
+        precondition(maximumEntries >= 0)
+        self.maximumEntries = maximumEntries
+    }
+
     func inventoryDirectories(
         under authorizedRoot: URL,
         shouldCancel: @Sendable () -> Bool
@@ -24,6 +31,7 @@ nonisolated struct LocalDirectoryInventoryReader: DirectoryInventoryReading {
         var directories: [URL] = []
         var issues: [DirectoryInventoryIssue] = []
         var pendingDirectories = [rootURL]
+        var observedEntries = 0
         while let directoryURL = pendingDirectories.popLast() {
             guard !shouldCancel() else {
                 return .cancelled
@@ -59,6 +67,14 @@ nonisolated struct LocalDirectoryInventoryReader: DirectoryInventoryReading {
                 guard !shouldCancel() else {
                     return .cancelled
                 }
+                // Count every child, including files and excluded entries, across the walk.
+                guard observedEntries < maximumEntries else {
+                    issues.append(
+                        DirectoryInventoryIssue(directoryURL: directoryURL, reason: .entryLimitReached)
+                    )
+                    return .partial(directories: directories, issues: issues)
+                }
+                observedEntries += 1
                 guard let itemMetadata = metadata(at: itemURL) else {
                     issues.append(
                         DirectoryInventoryIssue(

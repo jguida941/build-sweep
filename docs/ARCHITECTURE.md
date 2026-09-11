@@ -40,6 +40,10 @@ A recursive directory inventory and Cargo scan coordinator are implemented separ
 app. Scan results retain unreadable Cargo evidence as issues while keeping supported findings.
 The inventory explicitly walks verified directories, retaining readable sibling branches when an
 entry disappears or a child directory cannot be listed. It excludes static descendant symlinks.
+The reader defaults to a 100,000-child-entry allowance per inventory, counting files and excluded
+entries as well as directories. If another entry would exceed the allowance, it retains observed
+directories and reports an explicit partial result. This bounds child metadata attempts; it does
+not bound each shallow directory-list allocation or subsequent artifact size measurement.
 Alias, mount, changing-path, cancellation, and other incomplete-observation boundaries still need
 validation before app integration. The app continues to inspect only the selected workspace and
 does not yet present results from recursive discovery.
