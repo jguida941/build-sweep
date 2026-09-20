@@ -37,6 +37,17 @@ used as permission to remove an item automatically.
   filesystem mutation.
 - **SAFE-011 — No privilege surprise:** BuildSweep does not escalate privileges or broaden macOS
   access behind the developer's back. Denied locations remain denied and are reported as such.
+- **SAFE-012 — Equality is not disposability:** A matching content comparison never creates cleanup
+  authority. Required paths, metadata, independent writes, source, and retention obligations remain
+  separate constraints; an existing hard link is not an additional independent copy.
+- **SAFE-013 — Unknown use stays protected:** Age, a clean repository, no matching reference, or no
+  observed open process cannot prove disuse. Supported use and retention checks must not turn an
+  uninspected consumer into a claim that an item is unnecessary.
+- **SAFE-014 — Recovery must survive cleanup:** Any future recovery-dependent removal must retain a
+  separately verified recovery object that is neither selected for removal nor contained within any
+  selected directory.
+  Revalidate both removed and retained objects at the effect boundary. Source and protected records
+  remain excluded unless a later explicit safety decision admits a narrower operation.
 
 These laws are conjunctive. Passing one law does not compensate for violating another.
 
@@ -94,11 +105,38 @@ completeness must survive every summary independently; a complete inventory can 
 whose size could not be fully measured. Deduplicate overlapping observations without implying that
 allocated estimates equal unique physical storage.
 
+## Informational storage and duplicate results
+
+Size observations and content comparisons are read-only findings, not supported-artifact or cleanup
+claims. Unknown and protected material may contribute to qualified storage totals without being
+eligible for content inspection or removal. Report what was excluded, unreadable, or limited.
+Overlapping roots and hard links must not inflate independent-copy counts. Logical length, allocated
+estimates, and exclusive physical space are different quantities; shared storage may make exclusive
+reclamation unknown.
+
+A duplicate-content claim requires complete comparison against the same observed filesystem
+objects, with containment, identity and change checks throughout reading. Hashes may group likely
+matches; sampled or equal hashes alone cannot authorize a verified equality claim. Record the
+compared streams and unsupported metadata. Error or cancellation must never become equality.
+
+Known active writers or conflicting retention evidence prevent admission to cleanup. Read-only
+observation of those items may continue with the limitation shown. Lack of observed activity is
+not a substitute for the supported family's regeneration and use rules. Reading project metadata
+must not execute project scripts or acquire access outside approved locations.
+
+An archive's existence is not restoration evidence. A future recovery rule must account for the
+exact contents and required metadata, completeness, integrity, available restoration tooling and
+retained destination, with a demonstrated restoration appropriate to its stated claim. Mutually
+dependent copies cannot each justify deleting the other, including across separate confirmed
+operations. Restoration of historical records does not recreate their original execution.
+
 ## Always-excluded material
 
 Unless a future safety review changes this document explicitly, BuildSweep excludes:
 
 - source files and source-bearing directories;
+- unique reports, historical records, recovery archives relied upon by retained work, and data with
+  unresolved retention requirements;
 - `.git` and other version-control metadata;
 - package manifests and lockfiles;
 - Xcode projects and workspaces, SwiftPM manifests, Cargo manifests, Gradle build definitions, and

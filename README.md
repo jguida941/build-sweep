@@ -8,6 +8,10 @@ BuildSweep's planned scanner uses deterministic, project-aware rules so a develo
 that space without repeated filesystem searches or model-token usage for a deterministic local
 task. A familiar directory name by itself is never enough to authorize cleanup.
 
+The planned product explains storage across approved projects, shared developer caches, and temporary
+work areas. It distinguishes supported generated output, duplicate observations, and items whose
+purpose or recovery is unknown. Identical contents do not establish that either path is dispensable.
+
 The planned product shows each candidate's toolchain, location, size, and classification evidence.
 The developer chooses the exact candidates to move to Trash, where they remain recoverable until the
 Trash is emptied.
@@ -28,8 +32,11 @@ through the native macOS folder picker. It recognizes the project's default `tar
 when the Cargo manifest, default location, and canonical cache tag are present, then shows the path,
 an allocated-size estimate, and the evidence behind the result.
 
-BuildSweep does not yet search across multiple projects or remove anything. Broader artifact
-coverage, reviewed selection, revalidation, Trash movement, and receipts remain planned. The
+A bounded recursive Cargo scanner is implemented separately from the app; the window still inspects
+only the selected project. Shared locations, storage overviews, duplicate comparison, use and recovery
+evidence, age filters, and growth summaries remain planned. BuildSweep cannot yet remove anything.
+Broader artifact coverage, reviewed selection, revalidation, Trash movement, and receipts remain
+planned. The
 current app targets macOS 13 and later; release validation on supported macOS versions is still
 required.
 

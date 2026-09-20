@@ -55,7 +55,8 @@ Multi-project snapshots, stable cleanup identity, selection, revalidation, Trash
 remain unimplemented. The menu-bar entry and inspector window share one application model;
 filesystem work runs away from the main actor. Saved grants, incremental inventory, shared
 multi-location state, useful Dock/menu commands, Apple classifiers, and a WidgetKit extension remain
-planned. A documented component boundary is not an implemented service.
+planned. Storage overviews, content comparison, supported use/retention checks, age filters, and
+growth summaries are also unimplemented. A documented component boundary is not an implemented service.
 
 ## Discovery boundary
 
@@ -107,6 +108,13 @@ Boundary exclusions, in-scope read failures, and incomplete size measurements re
   preserves mixed results. It distinguishes a Trash request from an independently observed move.
 - **ARC-010 — Presentation state:** Projects scan, selection, confirmation, cleanup, and receipt
   state into SwiftUI. Views render state and send user intent; they do not perform filesystem policy.
+- **ARC-011 — Storage observations and comparison:** Produces qualified read-only size, age and
+  content-match observations from the shared authorized inventory. Bounds hashing and comparison,
+  preserves object identity and incomplete outcomes, and cannot create cleanup requests.
+- **ARC-012 — Use and recovery evidence:** Reads only supported project/tool metadata and records
+  known consumers, activity, retention constraints and recovery dependencies. Unknown relationships
+  remain unknown. Family rules and revalidation consume these observations; this component cannot
+  select items or relax a protected-material exclusion.
 
 ## Dependency rules
 
@@ -147,6 +155,38 @@ cleanup requests. Scan and Review actions route to fixed app commands; cold laun
 authorization and state before processing them. A request is not displayed as accepted work until
 the app accepts it. Widget timelines are not a promise of live progress.
 
+## Storage and retention observations
+
+Extend the existing inventory and scan snapshot as these capabilities land; do not build a second
+scanner or a generic plugin system. Storage observations, recognized artifacts, content-match groups,
+and cleanup candidates have different types and consumers. Unsupported or protected large items can
+appear in the storage view without a route into the selection model. Comparison and supported
+use/recovery readers are narrow responsibilities added within the existing layers.
+
+A content-match observation binds every member's filesystem identity, approved-root relationship,
+comparison scope, observation interval and validity. Group by cheap metadata and hashes, then compare
+complete contents of stable objects before reporting a verified match. Coalesce overlapping roots
+and hard-link identities without conflating byte-identical files with shared physical blocks.
+The measurement adapter keeps logical, allocated and unknown exclusive storage separate; the UI
+cannot convert duplicate byte totals into promised savings.
+
+Supported use evidence binds the metadata source, recognized layout/version, referenced identities,
+and inspected scope. Project source remains data, never executable inspection instructions. A
+reference outside a grant is an unresolved relationship, not permission to follow it. No global
+project-dependency graph or proof of arbitrary future use is claimed.
+
+If a later cleanup rule depends on retained recovery data, bind that dependency into its immutable
+candidate. Selection and revalidation reject removal of a recovery dependency or its ancestor,
+coordinate overlapping operations, and invalidate dependent candidates when a kept object changes
+or disappears. Receipts preserve original paths and the recovery relationship. The native Trash
+service retains its existing narrow role; archive creation, hard-link substitution and storage
+compaction are not implicit cleanup effects.
+
+Keep scan history bounded and local. Growth comparisons bind equivalent root authority, coverage,
+measurement basis and observation times; incomplete scans cannot appear as a measured decrease.
+Do not persist file contents merely to remember a scan. Evidence and receipt retention must account
+for low available capacity and retained recovery dependencies before pruning records.
+
 ## Location authorization
 
 One store owns approved location IDs, bookmark data, enablement, and authorization revisions. It
@@ -185,7 +225,10 @@ The product must represent at least these distinct states as the corresponding s
 - ready to choose or inspect scan roots;
 - scanning with progress or indeterminate activity and cancellation;
 - results with complete and incomplete size observations distinguished;
-- no supported candidates found;
+- no supported candidates found, with storage observations and unsupported coverage still visible;
+- duplicate content observed with cleanup unavailable;
+- known use or retention requirement, or use/recovery status unknown;
+- age unknown or growth comparison unavailable;
 - access denied or authorization required;
 - scan failure that preserves actionable context;
 - selection review and confirmation;
@@ -230,6 +273,10 @@ not evidence that enforcement exists.
 | PRD-007 | ARC-002, ARC-007, ARC-009, ARC-010 | Empty, denied, cancelled, stale, partial, and failed states remain distinct |
 | PRD-008 | ARC-001, ARC-010 | Keyboard and accessibility observations cover every implemented state and action |
 | PRD-009 | ARC-002, ARC-003, ARC-010 | Work remains cancellable and UI state remains responsive under bounded load |
+| PRD-010 | ARC-003, ARC-010, ARC-011 | Large unknown/protected observations remain visible but non-selectable |
+| PRD-011 | ARC-003, ARC-011 | Full stable comparison is distinct from same-object aliases and cleanup eligibility |
+| PRD-012 | ARC-004, ARC-007, ARC-012 | Known consumers/recovery dependencies are preserved; unknown use is not unused |
+| PRD-013 | ARC-002, ARC-010, ARC-011 | Age basis and comparable coverage survive filters and growth summaries |
 | SAFE-001 | ARC-004 | Same-name paths without required evidence are refused |
 | SAFE-002 | ARC-004, ARC-005 | Candidate emission requires the complete family evidence predicate |
 | SAFE-003 | ARC-003, ARC-004, ARC-007 | Protected source/configuration fixtures never become effect requests |
@@ -241,6 +288,9 @@ not evidence that enforcement exists.
 | SAFE-009 | ARC-009, ARC-010 | Mixed outcomes remain visible and cannot reduce to complete success |
 | SAFE-010 | ARC-002, ARC-007, ARC-008 | Cancellation before effect yields no mutation or incomplete candidate |
 | SAFE-011 | ARC-001, ARC-003 | Permission denial is surfaced without hidden escalation or scope expansion |
+| SAFE-012 | ARC-004, ARC-011 | Equal contents cannot mint cleanup authority or erase metadata/use distinctions |
+| SAFE-013 | ARC-004, ARC-012 | Missing or uninspected use evidence cannot become an unused verdict |
+| SAFE-014 | ARC-005, ARC-006, ARC-007, ARC-012 | Every selected removal preserves and revalidates its required recovery object |
 
 ## Change control
 

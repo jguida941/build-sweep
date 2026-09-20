@@ -31,8 +31,10 @@ meaning only in implementation.
 
 ## Product outcome
 
-BuildSweep helps a developer recover disk space used by regenerable build artifacts while keeping
-the decision understandable and reversible.
+BuildSweep helps a developer understand accumulating development storage and recover space from
+supported regenerable artifacts while keeping the decision understandable and reversible. Approved
+scope can include projects, shared tool caches, and temporary development work outside repositories.
+Large unsupported items remain visible as informational observations, with their uncertainty stated.
 
 The primary journey is:
 
@@ -51,8 +53,9 @@ The [safety model](SAFETY.md) governs what may become a candidate or reach Trash
   Mac. Core cleanup behavior does not require a cloud service or AI model.
 - **PRD-002 — Authorized scope:** The developer can approve, remember, disable, and remove scan
   locations. Inspection remains within the currently approved roots.
-- **PRD-003 — Supported classification:** BuildSweep presents only artifacts for which a supported
-  classifier has sufficient project or toolchain evidence.
+- **PRD-003 — Supported classification:** BuildSweep identifies an artifact as supported only when
+  a classifier has sufficient project or toolchain evidence. Informational storage observations do
+  not become cleanup candidates.
 - **PRD-004 — Explainable results:** Every candidate shows its artifact type, path, size, and the
   evidence used to classify it, including known regeneration requirements and limits.
 - **PRD-005 — Explicit selection:** No candidate is removed until the developer selects that exact
@@ -65,6 +68,18 @@ The [safety model](SAFETY.md) governs what may become a candidate or reach Trash
   macOS accessibility settings appropriate to the implemented controls and states.
 - **PRD-009 — Responsive work:** Long scans and size calculations do not block the interface and can
   be cancelled without turning incomplete observations into cleanup candidates.
+- **PRD-010 — Storage visibility:** Within approved development locations, show large files and
+  directories with size completeness and supported, protected, or unknown status. Finding no
+  supported artifacts must not imply that the location uses no space.
+- **PRD-011 — Duplicate observations:** Report verified matching file contents separately from
+  cleanup eligibility. Identify every compared object, comparison scope, and unresolved metadata;
+  do not label two paths to the same filesystem object as two independent copies.
+- **PRD-012 — Use and recovery evidence:** Explain relationships established by supported project
+  or tool metadata, known active work, and supported regeneration requirements. Missing references
+  are not proof of disuse. Archive-backed recovery is distinct from regeneration.
+- **PRD-013 — Age and growth:** Allow review filters by observed age and comparisons between saved
+  scans. State the timestamp basis and comparable scan scope; unknown age or incomplete coverage
+  must remain visible. No age threshold authorizes cleanup.
 
 ## Planned artifact coverage
 
@@ -104,6 +119,39 @@ Discovery produces inspection results only. It does not select an artifact, auth
 weaken later revalidation. Informational environments and unsupported near misses remain distinct
 from supported cleanup candidates. The current app still inspects one selected Cargo project;
 remembered locations and this broader presentation remain planned.
+
+## Storage, duplicates, and project use
+
+The results window should answer three separate questions: what occupies space, what is recognized,
+and what qualifies for reviewed cleanup. Informational rows cannot be selected for cleanup. Show
+supported generated output, unknown or protected contents, and duplicate groups without combining
+all their sizes into a removable-space estimate. Source and sensitive contents remain protected;
+large-folder visibility does not authorize indiscriminate content hashing.
+
+Duplicate comparison starts with explicitly scoped regular files. Size or sampled hashes can narrow
+comparison work but cannot establish equality. A verified content match requires complete comparison
+of stable objects; a changed, unreadable, cancelled, or limit-exhausted comparison remains unresolved.
+Report the comparison's content scope: matching primary file bytes alone says nothing about other
+streams, metadata, independent future writes, required locations, or recovery.
+
+Project awareness grows through separately supported tool layouts and metadata. Report observed
+owners, configured inputs, repository/worktree relationships, and retained recovery requirements
+where supported. Never execute an unfamiliar project's scripts to determine whether its data is
+needed. A clean Git status, an old timestamp, a temporary-looking name, or no observed open process
+cannot establish that a directory is disposable. Unknown use or retention requirements prevent a
+cleanup recommendation for that item; they do not prevent a storage observation.
+
+A rebuildable cache and an exact historical copy have different recovery needs. The latter may
+contain unique source, results, or records that a new build will not reproduce. Duplicate discovery
+therefore starts as informational. Removal based on a retained copy or archive requires a separately
+admitted recovery rule, explicit kept and removed identities, and current restoration evidence.
+No such rule or general archive/compaction capability is implemented. Existing protected-material
+exclusions continue to apply; a recovery archive does not override them.
+
+BuildSweep should also expose recurring growth through comparable scan summaries, so repeated
+output accumulation can be traced to supported projects or tools. It does not repair other tools'
+retention policies automatically. Its own scan state and receipts need bounded storage, visible
+retention choices, and low-space failure handling; scanning must not duplicate the trees it observes.
 
 ## Native interfaces
 
@@ -146,9 +194,11 @@ conditions. Scanning them is not permission to remove them.
 ## Delivery milestones
 
 1. **Bounded discovery:** finish containment and incomplete-observation behavior, then incremental
-   traversal, pruning, and overlap handling while preserving existing Cargo recognition.
+   traversal, pruning, and overlap handling while preserving existing Cargo recognition. Add
+   qualified storage observations without treating unsupported large folders as empty.
 2. **Remembered locations and results:** approved saved locations, one shared scan snapshot,
-   incremental results, per-location issues, and a native comparison window.
+   incremental results, per-location issues, and a native comparison window. Keep unknown and
+   protected observations non-selectable; show age basis and comparable growth separately.
 3. **Useful menu and Dock commands:** connect quick actions to that same workflow and preserve
    startup, cancellation, and window activation behavior.
 4. **Apple coverage:** add SwiftPM and Xcode separately, admitting only supported generated subtrees.
@@ -158,12 +208,20 @@ conditions. Scanning them is not permission to remove them.
    appearance, cold-launch routing, and accessibility.
 7. **Coverage expansion:** Python caches and Java build output, followed by C/C++, JavaScript, IDE,
    and other tool caches. Conditional environment cleanup is a separate capability.
-8. **Release readiness:** verify supported macOS behavior, accessibility, responsiveness,
+8. **Duplicates and retention:** introduce read-only file comparisons, then supported use/recovery
+   evidence. Admit any duplicate cleanup rule separately; preserve evidence, working copies, source,
+   and required locations. General archive creation and storage compaction remain deferred.
+9. **Release readiness:** verify supported macOS behavior, accessibility, responsiveness,
    cancellation, packaging, and the user-facing review and receipt experience.
 
 The first useful cleanup release prioritizes Apple toolchains and the existing Rust family. Each
 milestone remains planned until implemented and observed; partial delivery must be labeled honestly.
 The current prototype has no cleanup capability.
+
+The next coverage checkpoint remains one read-only SwiftPM generated-output rule. Show that result
+through the shared review workflow after its discovery prerequisites are satisfied; do not wait for
+every planned family or interface before making supported findings useful. Duplicate observations
+are a separate increment and confer no removal permission.
 
 ## Non-goals
 
@@ -175,7 +233,9 @@ BuildSweep is not:
 - a replacement for a build tool's own clean command;
 - an automatic background deletion service;
 - a runtime AI classifier for deciding whether a path is safe;
-- a promise that every developer cache or every version of a supported tool is recognized.
+- a promise that every developer cache or every version of a supported tool is recognized;
+- a universal determination that arbitrary software will never need a file again;
+- automatic archive deletion, hard-link replacement, or compaction of working copies.
 
 ## Product completion
 

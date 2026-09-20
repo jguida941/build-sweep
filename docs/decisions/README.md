@@ -12,6 +12,7 @@ short historical records, not another copy of the current product, safety, or ar
 | [ADR-0003](0003-support-macos-13-and-later.md) | Support macOS 13 and later | Accepted |
 | [ADR-0004](0004-shared-native-commands.md) | Share commands across native entry points | Accepted |
 | [ADR-0005](0005-remember-approved-locations.md) | Remember explicitly approved scan locations | Accepted |
+| [ADR-0006](0006-storage-observations-and-cleanup-eligibility.md) | Separate storage observations from cleanup eligibility | Accepted |
 
 ## When to write a decision
 
