@@ -52,9 +52,11 @@ The app continues to inspect only the selected workspace and does not yet presen
 recursive discovery.
 
 A SwiftPM output-map decoder translates supplied, byte-limited metadata into raw source/object
-path pairs. It keeps auxiliary outputs separate and refuses unsupported entry shapes. It does not
-read or validate referenced paths, establish regeneration evidence, or classify artifacts. SwiftPM
-filesystem observation and app discovery remain unimplemented.
+path pairs. Input must be UTF-8 without a byte-order mark. The decoder refuses repeated decoded
+member names within each object before storing the map, keeps auxiliary outputs separate, and
+refuses unsupported entry shapes. It does not read or validate referenced paths, establish
+regeneration evidence, or classify artifacts. SwiftPM filesystem observation and app discovery
+remain unimplemented.
 
 Multi-project snapshots, stable cleanup identity, selection, revalidation, Trash, and receipts
 remain unimplemented. The menu-bar entry and inspector window share one application model;
