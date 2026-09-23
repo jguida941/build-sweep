@@ -1,7 +1,8 @@
 import Darwin
 import Foundation
 
-/// Reads no file contents and never follows a symbolic link while estimating allocated storage.
+/// Estimates allocated storage without reading file contents, excluding entries observed as links.
+/// Path-based metadata reads are not protected against concurrent ancestor replacement.
 nonisolated struct LocalDirectorySizeMeasurer: DirectorySizeMeasuring {
     func measureDirectory(
         at directoryURL: URL,

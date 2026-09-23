@@ -31,10 +31,11 @@ from a path string after an upstream component refused or omitted it.
 ## Current implementation boundary
 
 The current app accepts one workspace chosen with the native macOS folder picker, applies the Cargo
-classifier to its default `target`, estimates allocated storage without following symbolic links or
-crossing a mounted filesystem, and projects the typed finding or refusal into a native window. This
-is an inspection finding, not the immutable cleanup candidate described by ARC-005. Size
-measurement excludes static symbolic links while retaining readable sibling file allocation.
+classifier to its default `target`, and displays a typed finding or refusal with an allocated-size
+estimate. This is an inspection finding, not the immutable cleanup candidate described by ARC-005.
+Size measurement excludes entries observed as symbolic links and entries whose device differs from
+the measured root, retaining readable sibling file allocation. Concurrent ancestor replacement can
+redirect later path-based metadata reads; that containment boundary remains unimplemented.
 
 A recursive directory inventory and Cargo scan coordinator are implemented separately from the
 app. Scan results retain unreadable Cargo evidence as issues while keeping supported findings.
@@ -55,8 +56,14 @@ A SwiftPM output-map decoder translates supplied, byte-limited metadata into raw
 path pairs. Input must be UTF-8 without a byte-order mark. The decoder refuses repeated decoded
 member names within each object before storing the map, keeps auxiliary outputs separate, and
 refuses unsupported entry shapes. It does not read or validate referenced paths, establish
-regeneration evidence, or classify artifacts. SwiftPM filesystem observation and app discovery
-remain unimplemented.
+regeneration evidence, or classify artifacts. SwiftPM file acquisition, artifact validation, and app
+discovery remain unimplemented.
+
+A bounded metadata reader borrows an already-open handle at its current position. It preserves
+input within the configured byte allowance and refuses oversized input after consuming at most one
+additional byte. Read errors produce a typed refusal. The caller owns access, handle lifetime, and
+exclusive use. The byte allowance does not bound I/O waiting or provide cancellation. The reader
+does not open paths, validate filesystem identity, or connect SwiftPM discovery to the app.
 
 Multi-project snapshots, stable cleanup identity, selection, revalidation, Trash, and receipts
 remain unimplemented. The menu-bar entry and inspector window share one application model;
