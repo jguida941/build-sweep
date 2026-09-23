@@ -51,6 +51,11 @@ other incomplete-observation boundaries still need validation before recursive a
 The app continues to inspect only the selected workspace and does not yet present results from
 recursive discovery.
 
+A SwiftPM output-map decoder translates supplied, byte-limited metadata into raw source/object
+path pairs. It keeps auxiliary outputs separate and refuses unsupported entry shapes. It does not
+read or validate referenced paths, establish regeneration evidence, or classify artifacts. SwiftPM
+filesystem observation and app discovery remain unimplemented.
+
 Multi-project snapshots, stable cleanup identity, selection, revalidation, Trash, and receipts
 remain unimplemented. The menu-bar entry and inspector window share one application model;
 filesystem work runs away from the main actor. Saved grants, incremental inventory, shared
