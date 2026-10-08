@@ -10,9 +10,9 @@ tool or project still needs. A name, size, age, or one-off AI guess cannot settl
 BuildSweep is an evidence-based development artifact inspector. Its long-term goal is to help you
 recover space from supported generated artifacts while keeping the decision and its limits clear.
 
-## How it works
+## Planned app behavior
 
-The planned workflow is:
+You will be able to:
 
 1. **Discover** storage inside locations you approve.
 2. **Identify** supported artifacts using project or tool-specific evidence.
@@ -21,7 +21,7 @@ The planned workflow is:
 
 Finding a folder is not proof of what it contains. Recognizing build output does not authorize
 cleanup, and being able to rebuild something does not guarantee recovery of its previous state.
-In that planned workflow, unknown items can be shown for inspection, but they cannot become
+Unknown items will be shown for inspection, but they cannot become
 cleanup candidates just because they are large or old.
 
 ## What works today

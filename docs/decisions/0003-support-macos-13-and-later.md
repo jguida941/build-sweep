@@ -10,7 +10,7 @@ The initial Xcode template inherited the development Mac's macOS 26.2 deployment
 make the app needlessly specific to one current machine. BuildSweep is a Mac-native utility and
 should have one explicit compatibility floor that preserves its menu-bar-first design.
 
-The first visible slice uses SwiftUI `MenuBarExtra`, `Window`, `Grid`, and `defaultSize`. Apple's
+The initial interface uses SwiftUI `MenuBarExtra`, `Window`, `Grid`, and `defaultSize`. Apple's
 macOS 26.2 SDK declares each of these APIs available in macOS 13 or earlier, with `MenuBarExtra`,
 `Window`, and `Grid` making macOS 13 the narrowest shared floor.
 

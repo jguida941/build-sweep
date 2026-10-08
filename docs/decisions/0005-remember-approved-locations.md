@@ -29,9 +29,9 @@ This is a planned capability. The current app keeps read access only during one 
 ## Consequences
 
 Resolve and balance access around work. Invalidate affected results when authority changes and
-deduplicate overlapping locations without widening grants. Observe relaunch, revoked access, and
-mixed successful/denied locations through the packaged sandboxed app. Cleanup needs a later
-deliberate write-permission transition.
+deduplicate overlapping locations without widening grants. The packaged sandboxed app must restore
+saved access after relaunch, surface revoked access, and distinguish accessible from denied
+locations within the same scan. Cleanup requires deliberate write permission.
 
 Apple documents persistent access using [security-scoped bookmarks](https://developer.apple.com/documentation/security/accessing-files-from-the-macos-app-sandbox).
 

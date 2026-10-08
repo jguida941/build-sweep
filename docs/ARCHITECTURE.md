@@ -1,6 +1,6 @@
 # Architecture
 
-Status: target architecture for the early BuildSweep releases. The first read-only Cargo slice
+Status: target architecture for the early BuildSweep releases. The read-only Cargo inspector
 implements a narrow path through this architecture; cleanup components remain unimplemented.
 
 ## Architectural outcome
@@ -250,7 +250,7 @@ results.
 
 ## Presentation states
 
-The product must represent at least these distinct states as the corresponding slices are built:
+The planned interfaces distinguish these states:
 
 - ready to choose or inspect scan roots;
 - scanning with progress or indeterminate activity and cancellation;
@@ -267,25 +267,14 @@ The product must represent at least these distinct states as the corresponding s
 - complete success, cancellation, complete failure, and partial failure;
 - receipts available for review.
 
-Exact visual composition belongs to the UI contract and user review. Collapsing these semantic
-states into the same success-looking presentation is an architecture defect.
+The interface must keep these states visually distinct so that an incomplete or failed operation
+cannot appear successful.
 
-## Observable boundaries
+## Component results
 
-The architecture provides narrow seams where each important behavior can be observed:
-
-- classifier examples, near misses, properties, and path-shape transformations;
-- authorized-root containment and link traversal;
-- stable identity and stale-candidate revalidation;
-- exact selection and refresh invalidation;
-- cancellation and incomplete inventory behavior;
-- Trash adapter requests and independent filesystem outcomes;
-- per-item receipts and partial failures;
-- presentation-state reduction and accessibility identifiers for meaningful controls.
-
-A classifier exposes its typed result. Cleanup exposes both the Trash request and the filesystem
-outcome through a channel independent of the Trash adapter's return value. Presentation is not the
-only observable protection for a domain safety law.
+A classifier returns a typed finding or refusal. Cleanup records both the Trash request and the
+resulting filesystem state, so an adapter's success response alone cannot create a successful
+receipt. These rules belong to the underlying components and apply across every interface.
 
 ## Requirement and safety traceability
 
@@ -296,7 +285,7 @@ not evidence that enforcement exists.
 | --- | --- | --- |
 | PRD-001 | ARC-001, ARC-003, ARC-008 | Core workflows succeed with local adapters and no network dependency |
 | PRD-002 | ARC-001, ARC-002, ARC-003 | Inventory never observes outside the supplied authorized roots |
-| PRD-003 | ARC-004, ARC-005 | Each family accepts evidence-backed examples and refuses dangerous near misses |
+| PRD-003 | ARC-004, ARC-005 | Each family requires its documented evidence and refuses missing or ambiguous evidence |
 | PRD-004 | ARC-005, ARC-010 | Candidate projection preserves kind, path, size state, and evidence |
 | PRD-005 | ARC-006, ARC-007 | Only exact confirmed candidate identities become effect requests |
 | PRD-006 | ARC-008, ARC-009 | Trash is the only effect and every accepted item receives an observed outcome |
@@ -309,7 +298,7 @@ not evidence that enforcement exists.
 | PRD-013 | ARC-002, ARC-010, ARC-011 | Age basis and comparable coverage survive filters and growth summaries |
 | SAFE-001 | ARC-004 | Same-name paths without required evidence are refused |
 | SAFE-002 | ARC-004, ARC-005 | Candidate emission requires the complete family evidence predicate |
-| SAFE-003 | ARC-003, ARC-004, ARC-007 | Protected source/configuration fixtures never become effect requests |
+| SAFE-003 | ARC-003, ARC-004, ARC-007 | Protected source and configuration files never become effect requests |
 | SAFE-004 | ARC-003, ARC-005, ARC-007 | Traversal, link, alias, and normalized-path escapes are refused |
 | SAFE-005 | ARC-006, ARC-007 | Parent, sibling, reordered, and newly appearing items are never implicitly selected |
 | SAFE-006 | ARC-005, ARC-007 | Replaced, moved, missing, or reclassified items are refused before effect |

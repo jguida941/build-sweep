@@ -34,8 +34,8 @@ effect occurred.
 
 ## Consequences
 
-- Each artifact family needs a narrow classifier and evidence that dangerous near misses are refused
-  before it is listed as supported.
+- Each supported artifact family needs a narrow classifier that identifies valid generated output
+  and refuses similar-looking source or ambiguous content.
 - Candidate and filesystem identities must survive the transition from scan to confirmation.
 - Stale or ambiguous candidates fail closed and require a fresh scan.
 - Mixed outcomes remain visible; cleanup cannot be summarized by one success Boolean.

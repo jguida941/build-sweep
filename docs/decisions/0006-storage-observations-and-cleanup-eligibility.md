@@ -31,8 +31,7 @@ compaction remain deferred. This is a design decision, not delivered functionali
 
 ## Consequences
 
-Deliver a supported family and read-only observations in separate increments. Selection cannot be
-constructed from informational rows. Bound comparison work, preserve incomplete outcomes and
+Selection cannot be constructed from informational rows. Bound comparison work, preserve incomplete outcomes and
 revalidate any future kept/removed relationship before effects. Show allocation estimates without
 promising exclusive recovery: [Apple File System](https://developer.apple.com/documentation/foundation/about-apple-file-system)
 supports storage sharing between clones.

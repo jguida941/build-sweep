@@ -201,14 +201,16 @@ See [Apple's description of Trash](https://support.apple.com/guide/mac-help/dele
 BuildSweep must continue to present refused and failed outcomes after a mixed operation. Retrying
 requires a fresh validity check and cannot expand the original selection.
 
-## Release boundary
+## Release safeguards
 
-A safety law is not supported merely because implementation exists. Release evidence must also show
-the intended behavior and dangerous near misses, including similarly named source directories,
-blanket refusal, stale identities, link traversal, selection substitution, partial failure, and a
-Trash service that reports success without producing the expected filesystem effect. Supported
-macOS behavior, accessibility, and the visible confirmation and receipt experience must be observed
-in the environments named by the release stage.
-For a tool-specific work-area or cache rule, include different home paths, project layouts, tool
-versions, active and retained work, unsupported layouts, and absent metadata. A rule that only works
-for one developer's directory tree is not admitted for general cleanup.
+A released cleanup capability must identify supported generated artifacts while protecting
+similarly named source directories, refusing stale or substituted items, and preventing link
+traversal outside approved locations. It must keep valid supported artifacts usable rather than
+refusing every item. Partial failures must remain visible, and a Trash service response without
+the expected filesystem effect must never appear as successful cleanup.
+
+Supported macOS behavior, accessibility, confirmation, and cleanup receipts must work in the
+environments named by the release. Tool-specific rules must work across supported home paths,
+project layouts, and tool versions while protecting active and retained work. Unsupported layouts
+and absent metadata cannot authorize cleanup. A rule specific to one developer's directory tree
+does not qualify as general cleanup support.

@@ -35,8 +35,8 @@ current platform guidance establish it.
 - The app shell stays thin; scanning and cleanup logic remain outside presentation code.
 - Compact and expanded states must share one application workflow rather than becoming separate
   control paths.
-- Window activation, menu bar behavior, accessibility, and app lifecycle require real macOS
-  observation before the interface is user-accepted.
+- Window activation, menu bar behavior, and app lifecycle must preserve keyboard and VoiceOver
+  access across compact and expanded presentations.
 
 Current requirements: [PRODUCT.md](../PRODUCT.md)
 

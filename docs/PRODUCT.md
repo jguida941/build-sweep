@@ -17,18 +17,6 @@ Five principles decide product tradeoffs:
 4. Native macOS clarity and accessibility.
 5. Honest limits and incremental support instead of broad cleanup claims.
 
-## How the North Star is used
-
-This document and the linked safety and architecture documents describe BuildSweep's current
-intended behavior. They guide implementation, but their presence is not evidence that a capability
-works. Each development slice should connect one requirement and its safety laws to the smallest
-real user-observable behavior.
-
-When a real product observation contradicts an assumption here, update the owning document and, for
-a consequential decision, add or supersede an architectural decision record. Do not preserve stale
-documentation to make an implementation appear conformant, and do not silently change product
-meaning only in implementation.
-
 ## Product outcome
 
 BuildSweep helps a developer understand accumulating development storage and recover space from
@@ -250,11 +238,6 @@ The first useful cleanup release prioritizes Apple toolchains and the existing R
 milestone remains planned until implemented and observed; partial delivery must be labeled honestly.
 The current prototype has no cleanup capability.
 
-The next coverage checkpoint remains one read-only SwiftPM generated-output rule. Show that result
-through the shared review workflow after its discovery prerequisites are satisfied; do not wait for
-every planned family or interface before making supported findings useful. Duplicate observations
-are a separate increment and confer no removal permission.
-
 ## Non-goals
 
 BuildSweep is not:
@@ -268,31 +251,6 @@ BuildSweep is not:
 - a promise that every developer cache or every version of a supported tool is recognized;
 - a universal determination that arbitrary software will never need a file again;
 - automatic archive deletion, hard-link replacement, or compaction of working copies.
-
-## Product completion
-
-Use these terms without collapsing one into another:
-
-- **planned:** the capability appears in product or architecture documents;
-- **implemented:** production code exists in the current checkout;
-- **behavior-observed:** the capability's required outcomes were observed on a named build and
-  environment;
-- **user-accepted:** the declared user task and visual question were accepted on a named build and
-  macOS environment;
-- **release-accepted:** every requirement in the capability's declared release stage has the
-  required implementation, safety, accessibility, behavior, and user evidence.
-
-A capability is complete only when its public requirement and safety laws are implemented, its
-required behavior and UI states are observable, and remaining limits are stated.
-The current prototype does not yet meet those conditions for any cleanup capability.
-
-## Product success signals
-
-Release planning should measure candidate precision on declared fixtures, dangerous near-miss
-refusals, scan time and cancellation, independently observed Trash outcomes, unresolved partial
-failures, task completion with keyboard and VoiceOver, and whether developers can understand why an
-item was proposed. Targets belong to the release stage that can measure them; this document does not
-invent numbers before a representative corpus and baseline exist.
 
 ## Decisions before cleanup expands
 
