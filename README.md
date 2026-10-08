@@ -11,6 +11,9 @@ task. A familiar directory name by itself is never enough to authorize cleanup.
 The planned product explains storage across approved projects, shared developer caches, and temporary
 work areas. It distinguishes supported generated output, duplicate observations, and items whose
 purpose or recovery is unknown. Identical contents do not establish that either path is dispensable.
+Codex and other agent-created work folders are planned as mixed storage observations; their source,
+worktrees, and retained records stay protected while individually supported generated output can be
+reviewed under a separate rule.
 
 The planned product shows each candidate's toolchain, location, size, and classification evidence.
 The developer chooses the exact candidates to move to Trash, where they remain recoverable until the

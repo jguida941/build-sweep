@@ -124,6 +124,17 @@ observation of those items may continue with the limitation shown. Lack of obser
 not a substitute for the supported family's regeneration and use rules. Reading project metadata
 must not execute project scripts or acquire access outside approved locations.
 
+An agent work folder or tool-owned store is a mixed container, not a cleanup family. Keep source,
+worktrees, transcripts, logs needed for diagnosis, proof or review results, receipts, and other
+retained records protected even when they sit beside generated files. A narrow generated subtree
+may be considered only under its own supported family rule. For shared caches, installed versions,
+and updater staging, the rule must understand the current layout and verify active use, update or
+rollback needs, and a durable way to obtain required data again. A clean repository, package-manager
+dry-run, matching copy, or lack of open files does not waive these checks. Unknown or contradictory
+relationships refuse cleanup while remaining visible in storage results.
+Displayed project connections are evidence-scoped observations, not a complete dependency graph;
+an absent connection or a content match cannot authorize removal.
+
 An archive's existence is not restoration evidence. A future recovery rule must account for the
 exact contents and required metadata, completeness, integrity, available restoration tooling and
 retained destination, with a demonstrated restoration appropriate to its stated claim. Mutually
@@ -198,3 +209,6 @@ blanket refusal, stale identities, link traversal, selection substitution, parti
 Trash service that reports success without producing the expected filesystem effect. Supported
 macOS behavior, accessibility, and the visible confirmation and receipt experience must be observed
 in the environments named by the release stage.
+For a tool-specific work-area or cache rule, include different home paths, project layouts, tool
+versions, active and retained work, unsupported layouts, and absent metadata. A rule that only works
+for one developer's directory tree is not admitted for general cleanup.

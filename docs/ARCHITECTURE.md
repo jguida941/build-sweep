@@ -189,6 +189,22 @@ and inspected scope. Project source remains data, never executable inspection in
 reference outside a grant is an unresolved relationship, not permission to follow it. No global
 project-dependency graph or proof of arbitrary future use is claimed.
 
+For agent-created work areas and tool stores, ARC-011 can report bounded storage observations of
+mixed contents, while ARC-012 reads only supported metadata for producer, consumer, active-writer,
+version-pointer, and recovery relationships. Each relationship is observed, unresolved, or
+contradictory and retains its inspected scope; missing references never become an unused verdict.
+ARC-004 may classify an individual generated subtree under its own family rule, but cannot promote
+the containing work area or store into a candidate. ARC-007 rechecks the family-specific use and
+recovery facts, including active version or update state where relevant, immediately before effect.
+This adds narrow readers to the shared scan rather than a second scanner or unrestricted project
+graph. Readers recognize versioned tool evidence relative to each approved root and observed
+filesystem identities, not an absolute path from one machine. Unsupported layouts remain read-only
+unknowns, with no fallback from missing metadata to inferred disuse.
+ARC-010 projects these typed relationships for one selected item and its known neighbors, including
+the metadata source and incomplete scope. Following a connection does not grant access beyond an
+approved root or turn a content match into a consumer edge. This bounded projection is a review
+aid, not an exhaustive dependency graph or a cleanup decision.
+
 If a later cleanup rule depends on retained recovery data, bind that dependency into its immutable
 candidate. Selection and revalidation reject removal of a recovery dependency or its ancestor,
 coordinate overlapping operations, and invalidate dependent candidates when a kept object changes

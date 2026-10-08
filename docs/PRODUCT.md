@@ -97,6 +97,8 @@ classifier is present and its required evidence and refusal behavior have been d
 | JavaScript and other tools | Selected generated output and tool caches | A separately supported tool-owned layout with source and dependency exclusions |
 | IDEs | Selected regenerable caches and indexes | A supported IDE-owned cache location or marker with explicit exclusions |
 | Python environments | Informational environment inventory first | Environment metadata; cleanup remains unavailable until a separate recreation rule is supported |
+| Agent-created work areas | Read-only inventory of build output, worktrees, retained results, and unknown contents | Supported tool and project relationships; only independently admitted generated subtrees may become candidates |
+| Shared package, download, and version stores | Informational inventory before tool-specific cleanup rules | Recognized tool layout, current version or active update state, and supported recovery requirements |
 
 Adding a family requires an update to this table, the safety model, its implementation, and evidence
 that dangerous near misses are refused. Similar-looking source or configuration directories are
@@ -141,6 +143,34 @@ needed. A clean Git status, an old timestamp, a temporary-looking name, or no ob
 cannot establish that a directory is disposable. Unknown use or retention requirements prevent a
 cleanup recommendation for that item; they do not prevent a storage observation.
 
+Agent-created work areas, including Codex work folders, may contain source, worktrees, build
+intermediates, downloaded tools, logs, transcripts, results, and recovery records together. Show
+their measured parts and supported project relationships without classifying the containing folder
+as regenerable. A relationship is evidence from a recognized tool layout or project metadata,
+not a guess from a folder name. Distinguish the producer, a known consumer, an active writer, and
+a retained recovery dependency; show unknown or conflicting relationships explicitly. References
+outside approved locations remain unresolved rather than expanding scan access.
+
+The repeatable cleanup path is a narrow rule for one generated artifact family, with its own
+regeneration source, use and retention checks, exact identity, and current revalidation. Shared
+package stores, installed tool versions, and updater staging need tool-specific rules that account
+for active use, offline rebuilds, rollback, and replacement downloads. A tool's dry-run or a scan
+that finds no active process is information, not proof that the whole store can be removed. Whole
+work-area cleanup is unavailable without a separate, supported recovery rule.
+
+Rules must be portable across developers' Macs: identify supported tool layouts and metadata under
+each person's approved locations rather than depend on this machine's folder names or a fixed home
+path. Validate a rule against different projects, tool versions, worktree layouts, and negative
+examples. If a supported relationship cannot be established on another machine, show the storage
+observation with an unknown relationship and no cleanup recommendation.
+
+The results inspector should show a bounded relationship view for a selected item: its observed
+project or worktree, producing tool, known consumers, and retained recovery dependencies, with the
+metadata source and observation scope for each connection. A developer can follow a supported
+connection to another observed item. Uninspected locations and missing metadata appear as unknown,
+not as an empty graph. Matching file contents are a separate comparison, not a use connection.
+This view explains what is known without claiming a complete dependency graph of the Mac.
+
 A rebuildable cache and an exact historical copy have different recovery needs. The latter may
 contain unique source, results, or records that a new build will not reproduce. Duplicate discovery
 therefore starts as informational. Removal based on a retained copy or archive requires a separately
@@ -162,7 +192,7 @@ Four entry points share the same application commands and results:
 | Menu bar | Compact status and frequent actions | Scan Saved Locations, Cancel Scan, Review Results, Manage Locations, Settings, Quit |
 | Dock | Quick access when the window is not frontmost | Scan Saved Locations, Cancel Scan, Review Results |
 | Widget | Glanceable summary and focused actions | Scan Now and Review; medium WidgetKit family first |
-| Main window | Comparison, explanations, permissions, and cleanup review | Locations sidebar, size-sorted results, details, search/filter, keep/exclude, Reveal in Finder, exact selection and confirmation |
+| Main window | Comparison, explanations, permissions, and cleanup review | Locations sidebar, size-sorted results, details with supported project connections, search/filter, keep/exclude, Reveal in Finder, exact selection and confirmation |
 
 The menu bar shows the latest estimate, its observation time, and scan status in a native compact
 panel. The widget shows the same qualified summary, with clear stale, partial, and unavailable
@@ -207,7 +237,9 @@ conditions. Scanning them is not permission to remove them.
 6. **Widget:** package the medium widget with qualified summaries, Scan and Review actions, gallery
    appearance, cold-launch routing, and accessibility.
 7. **Coverage expansion:** Python caches and Java build output, followed by C/C++, JavaScript, IDE,
-   and other tool caches. Conditional environment cleanup is a separate capability.
+   agent work areas, and other tool caches. Start mixed work areas and shared stores as read-only
+   observations; admit generated subtrees and tool-specific cleanup separately. Conditional
+   environment cleanup is a separate capability.
 8. **Duplicates and retention:** introduce read-only file comparisons, then supported use/recovery
    evidence. Admit any duplicate cleanup rule separately; preserve evidence, working copies, source,
    and required locations. General archive creation and storage compaction remain deferred.
