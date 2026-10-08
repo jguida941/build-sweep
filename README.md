@@ -1,53 +1,61 @@
 # BuildSweep
 
-**Make room on your Mac without guessing which development files are safe to remove.**
+**Inspect development build output on macOS before deciding what to remove.**
 
-## The problem
+Compilers, IDEs, package managers, and coding agents can leave gigabytes of build output and
+caches behind. The difficult part is deciding which exact files can be removed. A large work
+folder may hold generated data beside source code, Git worktrees, settings, and records another
+tool or project still needs. A name, size, age, or one-off AI guess cannot settle that question.
 
-Compilers, IDEs, and coding tools leave build files and caches behind. A large work folder may
-hold those files beside source code, active worktrees, and records you need to keep. Its size
-does not tell you which parts are safe to remove.
+BuildSweep is an evidence-based development artifact inspector. Its long-term goal is to help you
+recover space from supported generated artifacts while keeping the decision and its limits clear.
 
-An AI assistant can help find a large folder, but a one-off guess from its name and size cannot
-tell whether another project needs it. Repeating that search whenever the disk fills up is slow
-and inconsistent.
+## How it works
 
-## How BuildSweep helps
+The planned workflow is:
 
-The planned app will scan only folders you choose. For an item it supports, it will look for
-evidence from the tool or project, show any project connection it can verify, and explain how
-the item could be rebuilt or downloaded again. If a fact needed for cleanup is unknown, it will
-show that uncertainty and leave the item out of cleanup.
+1. **Discover** storage inside locations you approve.
+2. **Identify** supported artifacts using project or tool-specific evidence.
+3. **Explain** the observed size, known connections, regeneration requirements, and uncertainty.
+4. **Review** exact items before cleanup, recheck them, then move approved items to the macOS Trash.
 
-You will choose the exact items to remove. BuildSweep will check them again before moving them
-to the macOS Trash. It will not clean a whole work folder just because some files inside it can
-be rebuilt.
+Finding a folder is not proof of what it contains. Recognizing build output does not authorize
+cleanup, and being able to rebuild something does not guarantee recovery of its previous state.
+In that planned workflow, unknown items can be shown for inspection, but they cannot become
+cleanup candidates just because they are large or old.
 
-**Available today:** a read-only app that inspects one Rust project you choose. It shows why it
-recognized Cargo build output and gives a qualified size result. It cannot remove files yet.
+## What works today
 
-## Example: a Rust project
+BuildSweep currently inspects one selected Rust Cargo project in a read-only macOS app. For
+example:
 
 ```text
 my-rust-project/
 ├── Cargo.toml
+├── src/
+│   └── main.rs
 └── target/
-    └── CACHEDIR.TAG
+    ├── CACHEDIR.TAG
+    └── debug/
 ```
 
-Choose `my-rust-project` in the current app. BuildSweep checks that `Cargo.toml` is a real file,
-`target` is a real directory, and `CACHEDIR.TAG` has Cargo's expected signature. Only then does
-it report the `target` output and its size, or explain why the size could not be fully measured.
-It does not delete anything.
+After you choose the project folder, BuildSweep checks that `Cargo.toml` is a real regular
+file, `target/` is a real directory, and `target/CACHEDIR.TAG` is a real regular file with
+Cargo's expected signature. Only then does it report the `target/` directory and an estimated
+allocated size. It states when the measurement is partial or unavailable. The app does not move
+or delete files.
 
 ## What comes next
 
-Rust, Swift, and Xcode lead the first useful cleanup release. Python, Java and Android, and other
-tool caches follow. Codex and other agent work folders will be shown as mixed storage: BuildSweep
-should identify supported build output while protecting source, worktrees, and retained records.
+Rust, Swift, and Xcode lead the first planned cleanup release. Python, Java, Android, and other
+development caches follow. Agent-created work areas, including Codex work folders, will be
+treated as mixed storage: supported generated parts may be identified, while source, worktrees,
+retained records, and unknown content remain protected. A missing project link will not be taken
+as proof that an item is unused.
+
 The planned results window, menu bar, Dock actions, and widget will share one scan and review
-workflow. The current menu bar offers Open and Quit. BuildSweep targets macOS 13 and later;
-release validation is pending.
+workflow. Today, the menu bar offers Open and Quit. BuildSweep targets macOS 13 and later;
+release validation is still pending.
 
 ## Read more
 
